@@ -23,6 +23,7 @@ export type Settings = {
   home_lat: number;
   home_lng: number;
   show_goal_to_citizens: boolean;
+  about_text: string | null;
 };
 
 export type PickupStatus = "en_attente" | "completee" | "annulee";

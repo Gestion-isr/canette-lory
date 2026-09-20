@@ -91,6 +91,23 @@ export function SettingsForm({ settings, blocked }: { settings: Settings; blocke
           </p>
         </div>
 
+        <div>
+          <label className="label" htmlFor="about_text">
+            Texte de la page « À propos »
+          </label>
+          <textarea
+            id="about_text"
+            name="about_text"
+            rows={10}
+            defaultValue={settings.about_text ?? ""}
+            className="input font-mono text-xs"
+            placeholder={"Laisse vide pour le texte par défaut.\n\n## Sous-titre\nParagraphe…\n\n- point de liste\n- autre point"}
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            Ligne vide = nouveau paragraphe · <code>## </code> = sous-titre · <code>- </code> = liste. Vide = texte par défaut.
+          </p>
+        </div>
+
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" name="show_goal_to_citizens" defaultChecked={settings.show_goal_to_citizens} className="accent-brand-600" />
           Afficher l&apos;objectif et la barre de progression aux citoyens

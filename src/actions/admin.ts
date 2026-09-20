@@ -12,7 +12,7 @@ async function requireAdmin() {
 }
 
 function revalidateAll() {
-  for (const p of ["/", "/mon-compte", "/admin", "/admin/collectes", "/admin/carte", "/admin/parametres", "/admin/citoyens"])
+  for (const p of ["/", "/a-propos", "/historique", "/mon-compte", "/admin", "/admin/collectes", "/admin/carte", "/admin/parametres", "/admin/citoyens"])
     revalidatePath(p);
 }
 
@@ -32,6 +32,7 @@ export async function updateSettings(_prev: ActionState, formData: FormData): Pr
   const horizon_days = Math.max(7, Math.min(180, parseInt(String(formData.get("horizon_days") ?? "60"), 10) || 60));
   const show_goal_to_citizens = formData.get("show_goal_to_citizens") === "on";
   const home_address = String(formData.get("home_address") ?? "").trim().slice(0, 200) || null;
+  const about_text = String(formData.get("about_text") ?? "").trim().slice(0, 5000) || null;
 
   const { data: current } = await admin.from("settings").select("home_address, home_lat, home_lng").eq("id", 1).single();
   let home_lat = current?.home_lat ?? 45.915;
@@ -57,10 +58,11 @@ export async function updateSettings(_prev: ActionState, formData: FormData): Pr
       home_address,
       home_lat,
       home_lng,
+      about_text,
       updated_at: new Date().toISOString(),
     })
     .eq("id", 1);
-  if (error) return { error: "Impossible d'enregistrer les paramètres." };
+  if (error) return { error: error.message.includes("about_text") ? "La colonne about_text manque : exécute supabase/migrations/0002_a_propos.sql dans Supabase." : "Impossible d'enregistrer les paramètres." };
   revalidateAll();
   return { ok: true, message: "Paramètres enregistrés." };
 }

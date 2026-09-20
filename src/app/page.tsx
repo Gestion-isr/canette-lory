@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/supabase/server";
 import { getGoalProgress, getSettings } from "@/lib/data";
@@ -33,6 +34,15 @@ export default async function HomePage({
           <li>🔁 Possibilité de collecte récurrente</li>
           <li>♻️ Un geste simple pour l&apos;environnement et pour un projet jeunesse</li>
         </ul>
+        <p className="mt-4 text-sm">
+          <Link href="/a-propos" className="font-semibold text-brand-700 hover:underline">
+            En savoir plus sur le projet
+          </Link>
+          <span className="mx-2 text-gray-300">·</span>
+          <Link href="/historique" className="font-semibold text-brand-700 hover:underline">
+            Historique des collectes
+          </Link>
+        </p>
         {goal && settings?.show_goal_to_citizens && (
           <div className="mt-6">
             <GoalProgressBar goal={goal} />
