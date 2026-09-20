@@ -130,6 +130,17 @@ export async function setGoal(_prev: ActionState, formData: FormData): Promise<A
   return { ok: true, message: "Nouvel objectif défini !" };
 }
 
+/** Recule la date de départ de l'objectif au premier dépôt, pour inclure les dépôts antérieurs. */
+export async function includeAllDepositsInGoal(id: string): Promise<ActionState> {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { data: first } = await admin.from("deposits").select("deposited_at").order("deposited_at").limit(1).maybeSingle();
+  if (!first) return { error: "Aucun dépôt." };
+  await admin.from("goals").update({ started_at: first.deposited_at }).eq("id", id);
+  revalidateAll();
+  return { ok: true };
+}
+
 export async function markGoalAchieved(id: string): Promise<ActionState> {
   await requireAdmin();
   const admin = createAdminClient();
