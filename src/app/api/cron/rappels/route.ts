@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
   for (const p of pickups ?? []) {
     const prof = p.profiles as unknown as { email: string; full_name: string | null } | null;
     if (!prof) continue;
-    await sendReminder({ to: prof.email, name: prof.full_name, date: p.requested_date, childName: settings?.child_name ?? "Ma fille" });
+    await sendReminder({ to: prof.email, name: prof.full_name, date: p.requested_date, childName: settings?.child_name ?? "Lory" });
     await admin.from("pickup_requests").update({ reminder_sent_at: new Date().toISOString() }).eq("id", p.id);
     sent++;
   }

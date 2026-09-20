@@ -23,7 +23,7 @@ export async function updateSettings(_prev: ActionState, formData: FormData): Pr
   await requireAdmin();
   const admin = createAdminClient();
 
-  const child_name = String(formData.get("child_name") ?? "").trim().slice(0, 60) || "Ma fille";
+  const child_name = String(formData.get("child_name") ?? "").trim().slice(0, 60) || "Lory";
   const season = formData.get("season") === "hiver" ? "hiver" : "ete";
   const summer_days = formData.getAll("summer_days").map(Number).filter((n) => n >= 0 && n <= 6);
   const winter_days = formData.getAll("winter_days").map(Number).filter((n) => n >= 0 && n <= 6);

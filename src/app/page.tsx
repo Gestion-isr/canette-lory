@@ -14,7 +14,7 @@ export default async function HomePage({
 
   const { suite, erreur } = await searchParams;
   const [settings, goal] = await Promise.all([getSettings().catch(() => null), getGoalProgress().catch(() => null)]);
-  const childName = settings?.child_name ?? "Ma fille";
+  const childName = settings?.child_name ?? "Lory";
 
   return (
     <div className="mx-auto grid max-w-4xl gap-8 py-6 md:grid-cols-2 md:items-center">

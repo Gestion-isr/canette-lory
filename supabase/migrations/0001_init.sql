@@ -68,7 +68,7 @@ create trigger profiles_protect_fields
 -- ---------- Paramètres (ligne unique) ----------
 create table public.settings (
   id int primary key default 1 check (id = 1),
-  child_name text not null default 'Ma fille',
+  child_name text not null default 'Lory',
   season text not null default 'ete' check (season in ('ete', 'hiver')),
   summer_days int[] not null default '{0,1,2,3,4,5,6}',   -- 0 = dimanche ... 6 = samedi
   winter_days int[] not null default '{0,6}',
