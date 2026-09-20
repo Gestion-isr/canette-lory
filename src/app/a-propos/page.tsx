@@ -44,6 +44,15 @@ export default async function AProposPage() {
         )}
       </section>
 
+      <section className="card border-l-4 border-l-brand-600">
+        <h2 className="mb-2 text-lg font-bold">🛡️ Sécurité avant tout</h2>
+        <ul className="space-y-1.5 text-gray-700">
+          <li>• {settings.child_name} n&apos;entrera dans <strong>aucune maison</strong> : les sacs sont laissés à l&apos;extérieur, près de l&apos;entrée.</li>
+          <li>• Un <strong>adulte est présent</strong> lors de chaque passage.</li>
+          <li>• Tout geste ou comportement déplacé sera <strong>rapporté aux autorités</strong>.</li>
+        </ul>
+      </section>
+
       {goal && settings.show_goal_to_citizens && <GoalProgressBar goal={goal} />}
 
       <p className="text-center text-sm text-gray-500">
