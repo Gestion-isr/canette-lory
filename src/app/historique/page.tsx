@@ -8,7 +8,7 @@ import { GoalProgressBar } from "@/components/GoalProgressBar";
 
 export const dynamic = "force-dynamic";
 
-type MonthRow = { key: string; label: string; amount: number; cans: number; pickups: number };
+type MonthRow = { key: string; label: string; amount: number; donations: number; cans: number; pickups: number };
 
 export default async function HistoriquePage() {
   // Lecture côté serveur avec la clé service : seules des données agrégées (sans nom) sont affichées.
@@ -16,7 +16,7 @@ export default async function HistoriquePage() {
   const [settings, goal, { data: deposits }, { data: pickups }, { data: pastGoals }, { count: citizens }] = await Promise.all([
     getSettings(),
     getGoalProgress(),
-    admin.from("deposits").select("amount, cans_count, deposited_at").order("deposited_at"),
+    admin.from("deposits").select("amount, cans_count, deposited_at, kind").order("deposited_at"),
     admin.from("pickup_requests").select("requested_date").eq("status", "completee").order("requested_date"),
     admin.from("goals").select("title, target_amount, achieved_at, started_at").not("achieved_at", "is", null).order("achieved_at", { ascending: false }),
     admin.from("profiles").select("*", { count: "exact", head: true }).eq("is_admin", false),
@@ -26,26 +26,29 @@ export default async function HistoriquePage() {
   const row = (iso: string) => {
     const key = iso.slice(0, 7);
     if (!months.has(key)) {
-      months.set(key, { key, label: format(parseISO(`${key}-01`), "MMMM yyyy", { locale: fr }), amount: 0, cans: 0, pickups: 0 });
+      months.set(key, { key, label: format(parseISO(`${key}-01`), "MMMM yyyy", { locale: fr }), amount: 0, donations: 0, cans: 0, pickups: 0 });
     }
     return months.get(key)!;
   };
   for (const d of deposits ?? []) {
     const r = row(d.deposited_at);
     r.amount += Number(d.amount);
+    if (d.kind === "don") r.donations += Number(d.amount);
     r.cans += d.cans_count ?? 0;
   }
   for (const p of pickups ?? []) row(p.requested_date).pickups++;
 
   const rows = [...months.values()].sort((a, b) => (a.key < b.key ? 1 : -1));
   const totalAmount = (deposits ?? []).reduce((s, d) => s + Number(d.amount), 0);
+  const totalDonations = (deposits ?? []).filter((d) => d.kind === "don").reduce((s, d) => s + Number(d.amount), 0);
   const totalCans = (deposits ?? []).reduce((s, d) => s + (d.cans_count ?? 0), 0);
   const maxAmount = Math.max(1, ...rows.map((r) => r.amount));
   const firstDate = deposits?.[0]?.deposited_at ?? pickups?.[0]?.requested_date;
 
   const tiles = [
     { icon: "🥫", value: formatNumber(totalCans), label: "cannettes ramassées" },
-    { icon: "💰", value: formatMoney(totalAmount), label: "récoltés" },
+    { icon: "💰", value: formatMoney(totalAmount - totalDonations), label: "en consignes" },
+    { icon: "💛", value: formatMoney(totalDonations), label: "en dons" },
     { icon: "✅", value: formatNumber(pickups?.length ?? 0), label: "collectes complétées" },
     { icon: "🏘️", value: formatNumber(citizens ?? 0), label: "foyers participants" },
   ];
@@ -58,7 +61,7 @@ export default async function HistoriquePage() {
         {firstDate && <p className="mt-1 text-sm text-gray-500">Depuis le {formatDateLong(firstDate)}</p>}
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         {tiles.map((t) => (
           <div key={t.label} className="card !p-4 text-center">
             <p className="text-2xl">{t.icon}</p>
@@ -99,6 +102,7 @@ export default async function HistoriquePage() {
                   <span className="text-gray-600">
                     {r.cans > 0 && <>{formatNumber(r.cans)} cannettes · </>}
                     {r.pickups > 0 && <>{r.pickups} collecte{r.pickups > 1 ? "s" : ""} · </>}
+                    {r.donations > 0 && <>💛 {formatMoney(r.donations)} · </>}
                     <span className="font-semibold text-brand-700">{formatMoney(r.amount)}</span>
                   </span>
                 </div>

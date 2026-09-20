@@ -96,13 +96,21 @@ export async function addDeposit(_prev: ActionState, formData: FormData): Promis
   const cans_count = cansRaw ? Math.max(0, parseInt(cansRaw, 10) || 0) : null;
   const deposited_at = String(formData.get("deposited_at") ?? "");
   const note = String(formData.get("note") ?? "").trim().slice(0, 200) || null;
+  const kind = formData.get("kind") === "don" ? "don" : "cannettes";
   if (!Number.isFinite(amount) || amount < 0) return { error: "Montant invalide." };
   if (!ISO_DATE.test(deposited_at)) return { error: "Date invalide." };
   const admin = createAdminClient();
-  const { error } = await admin.from("deposits").insert({ amount, cans_count, deposited_at, note });
-  if (error) return { error: "Impossible d'ajouter le dépôt." };
+  const { error } = await admin
+    .from("deposits")
+    .insert({ amount, cans_count: kind === "don" ? null : cans_count, deposited_at, note, kind });
+  if (error)
+    return {
+      error: error.message.includes("kind")
+        ? "La colonne kind manque : exécute supabase/migrations/0003_dons.sql dans Supabase."
+        : "Impossible d'ajouter le dépôt.",
+    };
   revalidateAll();
-  return { ok: true, message: "Dépôt ajouté !" };
+  return { ok: true, message: kind === "don" ? "Don ajouté, merci !" : "Dépôt ajouté !" };
 }
 
 export async function deleteDeposit(id: string): Promise<ActionState> {

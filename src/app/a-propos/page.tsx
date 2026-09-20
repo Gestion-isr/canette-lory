@@ -18,6 +18,15 @@ export default async function AProposPage() {
         <h1 className="text-3xl font-extrabold text-gray-900">La collecte de cannettes de {settings.child_name}</h1>
       </div>
 
+      <section className="card border-l-4 border-l-brand-600">
+        <h2 className="mb-2 text-lg font-bold">🛡️ Sécurité avant tout</h2>
+        <ul className="space-y-1.5 text-gray-700">
+          <li>• {settings.child_name} n&apos;entrera dans <strong>aucune maison</strong> : les sacs sont laissés à l&apos;extérieur, près de l&apos;entrée.</li>
+          <li>• Un <strong>adulte est présent</strong> lors de chaque passage.</li>
+          <li>• Tout geste ou comportement déplacé sera <strong>rapporté aux autorités</strong>.</li>
+        </ul>
+      </section>
+
       <section className="card">
         <SimpleText text={text} />
       </section>
@@ -44,6 +53,8 @@ export default async function AProposPage() {
         )}
       </section>
 
+      {goal && settings.show_goal_to_citizens && <GoalProgressBar goal={goal} />}
+
       <section className="card bg-sun-400/15 ring-sun-500/40">
         <h2 className="mb-1 text-lg font-bold">💛 Les dons sont acceptés</h2>
         <p className="text-gray-700">
@@ -51,17 +62,6 @@ export default async function AProposPage() {
           collecte.
         </p>
       </section>
-
-      <section className="card border-l-4 border-l-brand-600">
-        <h2 className="mb-2 text-lg font-bold">🛡️ Sécurité avant tout</h2>
-        <ul className="space-y-1.5 text-gray-700">
-          <li>• {settings.child_name} n&apos;entrera dans <strong>aucune maison</strong> : les sacs sont laissés à l&apos;extérieur, près de l&apos;entrée.</li>
-          <li>• Un <strong>adulte est présent</strong> lors de chaque passage.</li>
-          <li>• Tout geste ou comportement déplacé sera <strong>rapporté aux autorités</strong>.</li>
-        </ul>
-      </section>
-
-      {goal && settings.show_goal_to_citizens && <GoalProgressBar goal={goal} />}
 
       <p className="text-center text-sm text-gray-500">
         <Link href="/historique" className="text-brand-700 hover:underline">

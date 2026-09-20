@@ -13,8 +13,12 @@ export function DepositList({ deposits }: { deposits: Deposit[] }) {
       {deposits.map((d) => (
         <li key={d.id} className="flex items-center justify-between gap-3 py-2 text-sm">
           <div>
-            <span className="font-semibold text-brand-700">{formatMoney(Number(d.amount))}</span>
-            {d.cans_count != null && <span className="text-gray-500"> · {d.cans_count} cannettes</span>}
+            <span className={`font-semibold ${d.kind === "don" ? "text-amber-600" : "text-brand-700"}`}>{formatMoney(Number(d.amount))}</span>
+            {d.kind === "don" ? (
+              <span className="badge ml-2 bg-sun-400/25 text-amber-800">💛 don</span>
+            ) : (
+              d.cans_count != null && <span className="text-gray-500"> · {d.cans_count} cannettes</span>
+            )}
             <span className="block text-xs capitalize text-gray-400">
               {formatDateShort(d.deposited_at)}
               {d.note ? ` · ${d.note}` : ""}

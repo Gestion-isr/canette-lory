@@ -59,12 +59,17 @@ export type GoalProgress = {
   target_amount: number;
   started_at: string;
   raised_amount: number;
+  raised_donations: number;
   total_amount: number;
+  total_donations: number;
   total_cans: number;
 };
 
+export type DepositKind = "cannettes" | "don";
+
 export type Deposit = {
   id: string;
+  kind: DepositKind;
   amount: number;
   cans_count: number | null;
   deposited_at: string;

@@ -6,6 +6,7 @@ import { toISODate } from "@/lib/availability";
 import { formatDateShort, formatMoney, formatNumber } from "@/lib/format";
 import { GoalProgressBar } from "@/components/GoalProgressBar";
 import { DepositForm } from "@/components/admin/DepositForm";
+import { DonationForm } from "@/components/admin/DonationForm";
 import { DepositList } from "@/components/admin/DepositList";
 import { GoalForm } from "@/components/admin/GoalForm";
 import type { Deposit, PickupWithProfile } from "@/lib/types";
@@ -35,11 +36,13 @@ export default async function AdminDashboard() {
     ]);
 
   const totalAmount = goal?.total_amount ?? Number((deposits ?? []).reduce((s, d) => s + Number(d.amount), 0));
+  const totalDonations = goal?.total_donations ?? 0;
   const totalCans = goal?.total_cans ?? 0;
 
   const tiles = [
     { label: "Argent récolté (total)", value: formatMoney(totalAmount), icon: "💰" },
-    { label: "Cannettes (total)", value: formatNumber(totalCans), icon: "🥫" },
+    { label: "Consignes", value: formatMoney(totalAmount - totalDonations), icon: "🥫", sub: `${formatNumber(totalCans)} cannettes` },
+    { label: "Dons", value: formatMoney(totalDonations), icon: "💛" },
     { label: "Collectes en attente", value: formatNumber(pendingCount ?? 0), icon: "📋" },
     { label: "Collectes complétées", value: formatNumber(doneCount ?? 0), icon: "✅" },
     { label: "Citoyens inscrits", value: formatNumber(citizens ?? 0), icon: "🏘️" },
@@ -57,12 +60,15 @@ export default async function AdminDashboard() {
         <span className="badge bg-brand-100 text-brand-800">{settings.season === "ete" ? "☀️ Mode été" : "❄️ Mode hiver"}</span>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {tiles.map((t) => (
           <div key={t.label} className="card !p-4">
             <p className="text-xl">{t.icon}</p>
             <p className="mt-1 text-2xl font-extrabold text-gray-900">{t.value}</p>
-            <p className="text-xs text-gray-500">{t.label}</p>
+            <p className="text-xs text-gray-500">
+              {t.label}
+              {"sub" in t && t.sub ? <span className="block text-gray-400">{t.sub}</span> : null}
+            </p>
           </div>
         ))}
       </div>
@@ -77,11 +83,18 @@ export default async function AdminDashboard() {
           <GoalForm goal={goal} today={today} />
         </section>
 
-        <section className="card">
-          <h2 className="mb-3 text-lg font-bold">💰 Ajouter un dépôt</h2>
-          <p className="mb-3 text-sm text-gray-500">Après un passage au dépanneur / centre de retour, entre le montant reçu.</p>
-          <DepositForm today={today} />
-        </section>
+        <div className="space-y-5">
+          <section className="card">
+            <h2 className="mb-3 text-lg font-bold">💰 Ajouter un dépôt de consignes</h2>
+            <p className="mb-3 text-sm text-gray-500">Après un passage au dépanneur / centre de retour, entre le montant reçu.</p>
+            <DepositForm today={today} />
+          </section>
+          <section className="card">
+            <h2 className="mb-3 text-lg font-bold">💛 Ajouter un don</h2>
+            <p className="mb-3 text-sm text-gray-500">Argent reçu en don lors d'une collecte. Compte dans l'objectif, affiché séparément.</p>
+            <DonationForm today={today} />
+          </section>
+        </div>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">

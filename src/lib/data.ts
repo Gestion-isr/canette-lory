@@ -45,7 +45,9 @@ export async function getGoalProgress(): Promise<GoalProgress | null> {
     ...row,
     target_amount: Number(row.target_amount),
     raised_amount: Number(row.raised_amount),
+    raised_donations: Number(row.raised_donations ?? 0),
     total_amount: Number(row.total_amount),
+    total_donations: Number(row.total_donations ?? 0),
     total_cans: Number(row.total_cans),
   };
 }

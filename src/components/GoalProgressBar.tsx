@@ -32,7 +32,10 @@ export function GoalProgressBar({ goal, compact = false }: { goal: GoalProgress;
           style={{ width: `${pct}%` }}
         />
       </div>
-      <p className="mt-1.5 text-right text-xs font-semibold text-gray-500">{pct} %</p>
+      <div className="mt-1.5 flex items-center justify-between text-xs text-gray-500">
+        <span>{goal.raised_donations > 0 ? `dont ${formatMoney(goal.raised_donations)} en dons 💛` : ""}</span>
+        <span className="font-semibold">{pct} %</span>
+      </div>
     </div>
   );
 }
