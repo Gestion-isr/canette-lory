@@ -44,6 +44,14 @@ export default async function AProposPage() {
         )}
       </section>
 
+      <section className="card bg-sun-400/15 ring-sun-500/40">
+        <h2 className="mb-1 text-lg font-bold">💛 Les dons sont acceptés</h2>
+        <p className="text-gray-700">
+          Que ce soit 25 ¢ ou 1 $, chaque dollar fait une différence ! Vous pouvez glisser votre don dans le sac de cannettes le jour de la
+          collecte.
+        </p>
+      </section>
+
       <section className="card border-l-4 border-l-brand-600">
         <h2 className="mb-2 text-lg font-bold">🛡️ Sécurité avant tout</h2>
         <ul className="space-y-1.5 text-gray-700">
