@@ -5,6 +5,7 @@ import { ProfileForm } from "@/components/ProfileForm";
 import { PickupRequestForm } from "@/components/PickupRequestForm";
 import { CitizenPickupList } from "@/components/CitizenPickupList";
 import { GoalProgressBar } from "@/components/GoalProgressBar";
+import { PasswordForm } from "@/components/PasswordForm";
 import type { PickupRequest, Recurrence } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +31,9 @@ export default async function MonComptePage() {
       <div>
         <h1 className="text-2xl font-bold">Bonjour{profile.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""} 👋</h1>
         <p className="text-sm text-gray-500">{profile.email}</p>
+        <div className="mt-2">
+          <PasswordForm />
+        </div>
       </div>
 
       {goal && settings.show_goal_to_citizens && <GoalProgressBar goal={goal} />}

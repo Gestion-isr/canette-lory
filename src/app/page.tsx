@@ -24,7 +24,7 @@ export default async function HomePage({
           {childName} ramasse vos cannettes vides, directement chez vous.
         </h1>
         <p className="mt-4 text-gray-600">
-          Créez votre compte en un clic, entrez votre adresse et choisissez une date. {childName} passe chercher vos
+          Créez votre compte, entrez votre adresse et choisissez une date. {childName} passe chercher vos
           sacs et les consignes servent à financer son objectif.
         </p>
         <ul className="mt-5 space-y-2 text-sm text-gray-700">
@@ -42,9 +42,7 @@ export default async function HomePage({
 
       <div className="card">
         <h2 className="text-lg font-bold">Connexion / Inscription</h2>
-        <p className="mt-1 text-sm text-gray-500">
-          Pas de mot de passe : vous recevrez un lien de connexion par courriel.
-        </p>
+        <p className="mt-1 text-sm text-gray-500">Déjà inscrit ? Connectez-vous. Sinon, créez votre compte en 30 secondes.</p>
         {erreur === "lien" && (
           <p className="alert-error mt-3">Ce lien est invalide ou expiré. Demandez-en un nouveau ci-dessous.</p>
         )}
