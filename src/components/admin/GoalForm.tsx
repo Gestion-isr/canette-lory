@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState, useState, useTransition } from "react";
-import { includeAllDepositsInGoal, markGoalAchieved, setGoal } from "@/actions/admin";
+import { includeAllDepositsInGoal, markGoalAchieved, setGoal, updateGoalImage } from "@/actions/admin";
+import { ImagePicker } from "@/components/admin/ImagePicker";
 import { formatDateLong, formatMoney } from "@/lib/format";
 import type { ActionState } from "@/actions/pickups";
 import type { GoalProgress } from "@/lib/types";
@@ -9,6 +10,8 @@ import type { GoalProgress } from "@/lib/types";
 export function GoalForm({ goal, today }: { goal: GoalProgress | null; today: string }) {
   const [state, action, pending] = useActionState<ActionState, FormData>(setGoal, {});
   const [open, setOpen] = useState(!goal);
+  const [photoOpen, setPhotoOpen] = useState(false);
+  const [photoState, photoAction, photoPending] = useActionState<ActionState, FormData>(updateGoalImage, {});
   const [achieving, startAchieve] = useTransition();
 
   const excluded = goal ? goal.total_amount - goal.raised_amount : 0;
@@ -35,6 +38,9 @@ export function GoalForm({ goal, today }: { goal: GoalProgress | null; today: st
           <button type="button" onClick={() => setOpen(true)} className="btn-secondary btn-sm">
             🎯 Nouvel objectif
           </button>
+          <button type="button" onClick={() => setPhotoOpen((o) => !o)} className="btn-secondary btn-sm">
+            📷 {goal.image_url ? "Changer la photo" : "Ajouter une photo"}
+          </button>
           {goal.raised_amount >= goal.target_amount && (
             <button
               type="button"
@@ -48,6 +54,29 @@ export function GoalForm({ goal, today }: { goal: GoalProgress | null; today: st
             </button>
           )}
         </div>
+      )}
+
+      {goal && !open && photoOpen && (
+        <form action={photoAction} className="space-y-3 rounded-xl bg-gray-50 p-4 ring-1 ring-black/5">
+          <input type="hidden" name="id" value={goal.goal_id} />
+          <p className="text-sm font-semibold">Photo de l&apos;objectif</p>
+          <ImagePicker id="goal-photo" />
+          {photoState.error && <p className="alert-error">{photoState.error}</p>}
+          {photoState.ok && <p className="alert-success">{photoState.message}</p>}
+          <div className="flex flex-wrap gap-2">
+            <button type="submit" disabled={photoPending} className="btn-primary btn-sm">
+              {photoPending ? "Envoi…" : "Enregistrer la photo"}
+            </button>
+            {goal.image_url && (
+              <button type="submit" name="remove" value="1" disabled={photoPending} className="btn-danger btn-sm">
+                Retirer la photo
+              </button>
+            )}
+            <button type="button" onClick={() => setPhotoOpen(false)} className="btn-secondary btn-sm">
+              Fermer
+            </button>
+          </div>
+        </form>
       )}
 
       {open && (
@@ -72,6 +101,12 @@ export function GoalForm({ goal, today }: { goal: GoalProgress | null; today: st
               </label>
               <input id="started_at" name="started_at" type="date" defaultValue={today} required className="input" />
             </div>
+          </div>
+          <div>
+            <label className="label" htmlFor="image">
+              Photo <span className="font-normal text-gray-400">(optionnel)</span>
+            </label>
+            <ImagePicker />
           </div>
           {state.error && <p className="alert-error">{state.error}</p>}
           <div className="flex gap-2">

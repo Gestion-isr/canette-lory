@@ -63,6 +63,7 @@ export type GoalProgress = {
   total_amount: number;
   total_donations: number;
   total_cans: number;
+  image_url: string | null;
 };
 
 export type DepositKind = "cannettes" | "don";

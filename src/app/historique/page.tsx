@@ -18,7 +18,7 @@ export default async function HistoriquePage() {
     getGoalProgress(),
     admin.from("deposits").select("amount, cans_count, deposited_at, kind").order("deposited_at"),
     admin.from("pickup_requests").select("requested_date").eq("status", "completee").order("requested_date"),
-    admin.from("goals").select("title, target_amount, achieved_at, started_at").not("achieved_at", "is", null).order("achieved_at", { ascending: false }),
+    admin.from("goals").select("title, target_amount, achieved_at, started_at, image_url").not("achieved_at", "is", null).order("achieved_at", { ascending: false }),
     admin.from("profiles").select("*", { count: "exact", head: true }).eq("is_admin", false),
   ]);
 
@@ -79,7 +79,13 @@ export default async function HistoriquePage() {
           <ul className="divide-y divide-gray-100">
             {(pastGoals ?? []).map((g) => (
               <li key={`${g.title}-${g.achieved_at}`} className="flex items-center justify-between gap-3 py-2 text-sm">
-                <span className="font-medium">🎉 {g.title}</span>
+                <span className="flex items-center gap-3 font-medium">
+                  {g.image_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={g.image_url} alt="" className="h-12 w-12 rounded-lg object-cover ring-1 ring-black/10" />
+                  )}
+                  🎉 {g.title}
+                </span>
                 <span className="text-gray-500">
                   {formatMoney(Number(g.target_amount))} · {format(parseISO(g.achieved_at!), "d MMMM yyyy", { locale: fr })}
                 </span>

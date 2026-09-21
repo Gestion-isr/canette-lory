@@ -41,8 +41,10 @@ export async function getGoalProgress(): Promise<GoalProgress | null> {
   const { data } = await supabase.rpc("get_goal_progress");
   const row = (data as GoalProgress[] | null)?.[0];
   if (!row) return null;
+  const { data: g } = await supabase.from("goals").select("image_url").eq("id", row.goal_id).maybeSingle();
   return {
     ...row,
+    image_url: g?.image_url ?? null,
     target_amount: Number(row.target_amount),
     raised_amount: Number(row.raised_amount),
     raised_donations: Number(row.raised_donations ?? 0),

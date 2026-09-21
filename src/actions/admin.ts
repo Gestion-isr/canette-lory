@@ -122,6 +122,28 @@ export async function deleteDeposit(id: string): Promise<ActionState> {
 }
 
 // ---------------- Objectif ----------------
+const IMAGE_TYPES: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+
+/** Téléverse une photo dans le bucket public « objectifs » et renvoie son URL, ou null si aucun fichier. */
+async function uploadGoalImage(file: FormDataEntryValue | null): Promise<{ url: string | null; error?: string }> {
+  if (!(file instanceof File) || file.size === 0) return { url: null };
+  const ext = IMAGE_TYPES[file.type];
+  if (!ext) return { url: null, error: "Format d'image non pris en charge (JPG, PNG ou WebP)." };
+  if (file.size > 6 * 1024 * 1024) return { url: null, error: "Image trop lourde (max 6 Mo)." };
+  const admin = createAdminClient();
+  const path = `${crypto.randomUUID()}.${ext}`;
+  const { error } = await admin.storage.from("objectifs").upload(path, file, { contentType: file.type, upsert: false });
+  if (error) {
+    return {
+      url: null,
+      error: /bucket/i.test(error.message)
+        ? "Le bucket « objectifs » manque : exécute supabase/migrations/0004_photo_objectif.sql dans Supabase."
+        : "Impossible de téléverser la photo.",
+    };
+  }
+  return { url: admin.storage.from("objectifs").getPublicUrl(path).data.publicUrl };
+}
+
 export async function setGoal(_prev: ActionState, formData: FormData): Promise<ActionState> {
   await requireAdmin();
   const title = String(formData.get("title") ?? "").trim().slice(0, 100);
@@ -131,13 +153,42 @@ export async function setGoal(_prev: ActionState, formData: FormData): Promise<A
   if (!Number.isFinite(target_amount) || target_amount <= 0) return { error: "Montant cible invalide." };
   if (!ISO_DATE.test(started_at)) return { error: "Date de départ invalide." };
 
+  const img = await uploadGoalImage(formData.get("image"));
+  if (img.error) return { error: img.error };
+
   const admin = createAdminClient();
   // Un seul objectif actif à la fois
   await admin.from("goals").update({ active: false }).eq("active", true);
-  const { error } = await admin.from("goals").insert({ title, target_amount, started_at, active: true });
-  if (error) return { error: "Impossible de créer l'objectif." };
+  const { error } = await admin.from("goals").insert({ title, target_amount, started_at, active: true, image_url: img.url });
+  if (error)
+    return {
+      error: error.message.includes("image_url")
+        ? "La colonne image_url manque : exécute supabase/migrations/0004_photo_objectif.sql dans Supabase."
+        : "Impossible de créer l'objectif.",
+    };
   revalidateAll();
   return { ok: true, message: "Nouvel objectif défini !" };
+}
+
+/** Change (ou retire) la photo de l'objectif actif. */
+export async function updateGoalImage(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  if (!id) return { error: "Objectif introuvable." };
+  const remove = formData.get("remove") === "1";
+  const admin = createAdminClient();
+
+  let url: string | null = null;
+  if (!remove) {
+    const img = await uploadGoalImage(formData.get("image"));
+    if (img.error) return { error: img.error };
+    if (!img.url) return { error: "Choisis une photo." };
+    url = img.url;
+  }
+  const { error } = await admin.from("goals").update({ image_url: url }).eq("id", id);
+  if (error) return { error: "Impossible d'enregistrer la photo." };
+  revalidateAll();
+  return { ok: true, message: remove ? "Photo retirée." : "Photo enregistrée !" };
 }
 
 /** Recule la date de départ de l'objectif au premier dépôt, pour inclure les dépôts antérieurs. */
