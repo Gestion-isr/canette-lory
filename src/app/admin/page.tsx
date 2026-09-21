@@ -1,14 +1,13 @@
 import Link from "next/link";
 import { addDays } from "date-fns";
 import { createAdminClient } from "@/lib/supabase/server";
-import { getGoalProgress, getSettings } from "@/lib/data";
+import { getGoals, getSettings } from "@/lib/data";
 import { toISODate } from "@/lib/availability";
 import { formatDateShort, formatMoney, formatNumber } from "@/lib/format";
-import { GoalProgressBar } from "@/components/GoalProgressBar";
 import { DepositForm } from "@/components/admin/DepositForm";
 import { DonationForm } from "@/components/admin/DonationForm";
 import { DepositList } from "@/components/admin/DepositList";
-import { GoalForm } from "@/components/admin/GoalForm";
+import { GoalManager } from "@/components/admin/GoalManager";
 import type { Deposit, PickupWithProfile } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -18,10 +17,10 @@ export default async function AdminDashboard() {
   const today = toISODate(new Date());
   const weekEnd = toISODate(addDays(new Date(), 7));
 
-  const [settings, goal, { data: deposits }, { count: pendingCount }, { count: doneCount }, { data: upcoming }, { count: citizens }] =
+  const [settings, { goals, funds, surplus }, { data: deposits }, { count: pendingCount }, { count: doneCount }, { data: upcoming }, { count: citizens }] =
     await Promise.all([
       getSettings(),
-      getGoalProgress(),
+      getGoals(),
       admin.from("deposits").select("*").order("deposited_at", { ascending: false }).limit(10),
       admin.from("pickup_requests").select("*", { count: "exact", head: true }).eq("status", "en_attente"),
       admin.from("pickup_requests").select("*", { count: "exact", head: true }).eq("status", "completee"),
@@ -35,9 +34,9 @@ export default async function AdminDashboard() {
       admin.from("profiles").select("*", { count: "exact", head: true }).eq("is_admin", false),
     ]);
 
-  const totalAmount = goal?.total_amount ?? Number((deposits ?? []).reduce((s, d) => s + Number(d.amount), 0));
-  const totalDonations = goal?.total_donations ?? 0;
-  const totalCans = goal?.total_cans ?? 0;
+  const totalAmount = funds.total_amount;
+  const totalDonations = funds.total_donations;
+  const totalCans = funds.total_cans;
 
   const tiles = [
     { label: "Argent récolté (total)", value: formatMoney(totalAmount), icon: "💰" },
@@ -74,13 +73,8 @@ export default async function AdminDashboard() {
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <section className="card space-y-4">
-          {goal ? (
-            <GoalProgressBar goal={goal} compact />
-          ) : (
-            <p className="text-sm text-gray-500">Aucun objectif actif. Définis-en un ci-dessous.</p>
-          )}
-          <GoalForm goal={goal} today={today} />
+        <section className="card">
+          <GoalManager goals={goals} funds={funds} surplus={surplus} />
         </section>
 
         <div className="space-y-5">

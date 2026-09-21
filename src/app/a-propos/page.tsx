@@ -1,14 +1,14 @@
 import Link from "next/link";
-import { getGoalProgress, getSettings } from "@/lib/data";
+import { getGoals, getSettings } from "@/lib/data";
 import { getCurrentProfile } from "@/lib/supabase/server";
-import { GoalProgressBar } from "@/components/GoalProgressBar";
+import { GoalList } from "@/components/GoalProgressBar";
 import { SimpleText } from "@/components/SimpleText";
 import { defaultAboutText } from "@/lib/about";
 
 export const dynamic = "force-dynamic";
 
 export default async function AProposPage() {
-  const [settings, goal, profile] = await Promise.all([getSettings(), getGoalProgress(), getCurrentProfile().catch(() => null)]);
+  const [settings, { goals }, profile] = await Promise.all([getSettings(), getGoals(), getCurrentProfile().catch(() => null)]);
   const text = settings.about_text?.trim() || defaultAboutText(settings.child_name);
 
   return (
@@ -53,7 +53,7 @@ export default async function AProposPage() {
         )}
       </section>
 
-      {goal && settings.show_goal_to_citizens && <GoalProgressBar goal={goal} />}
+      {goals.length > 0 && settings.show_goal_to_citizens && <GoalList goals={goals} />}
 
       <section className="card bg-sun-400/15 ring-sun-500/40">
         <h2 className="mb-1 text-lg font-bold">💛 Les dons sont acceptés</h2>

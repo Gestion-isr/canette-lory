@@ -1,7 +1,8 @@
 import { addDays } from "date-fns";
 import { createClient } from "@/lib/supabase/server";
 import { computeAvailability, toISODate, type DayAvailability } from "@/lib/availability";
-import type { GoalProgress, Settings } from "@/lib/types";
+import { allocateFunds } from "@/lib/goals";
+import type { Funds, Goal, GoalProgress, Settings } from "@/lib/types";
 
 export async function getSettings(): Promise<Settings> {
   const supabase = await createClient();
@@ -36,20 +37,29 @@ export async function getAvailability(settings?: Settings): Promise<DayAvailabil
   });
 }
 
-export async function getGoalProgress(): Promise<GoalProgress | null> {
+export async function getFunds(): Promise<Funds> {
   const supabase = await createClient();
-  const { data } = await supabase.rpc("get_goal_progress");
-  const row = (data as GoalProgress[] | null)?.[0];
-  if (!row) return null;
-  const { data: g } = await supabase.from("goals").select("image_url").eq("id", row.goal_id).maybeSingle();
+  const { data } = await supabase.rpc("get_funds_summary");
+  const row = (data as Partial<Funds>[] | null)?.[0] ?? {};
+  const total_amount = Number(row.total_amount ?? 0);
+  const spent_amount = Number(row.spent_amount ?? 0);
   return {
-    ...row,
-    image_url: g?.image_url ?? null,
-    target_amount: Number(row.target_amount),
-    raised_amount: Number(row.raised_amount),
-    raised_donations: Number(row.raised_donations ?? 0),
-    total_amount: Number(row.total_amount),
+    total_amount,
     total_donations: Number(row.total_donations ?? 0),
-    total_cans: Number(row.total_cans),
+    total_cans: Number(row.total_cans ?? 0),
+    spent_amount,
+    available: Math.max(0, total_amount - spent_amount),
   };
+}
+
+/** Objectifs actifs avec leur progression (cascade), plus le résumé de la cagnotte. */
+export async function getGoals(): Promise<{ goals: GoalProgress[]; funds: Funds; surplus: number }> {
+  const supabase = await createClient();
+  const [funds, { data }] = await Promise.all([
+    getFunds(),
+    supabase.from("goals").select("*").eq("active", true).order("position").order("created_at"),
+  ]);
+  const goals = ((data ?? []) as Goal[]).map((g) => ({ ...g, target_amount: Number(g.target_amount) }));
+  const { goals: allocated, surplus } = allocateFunds(goals, funds.available);
+  return { goals: allocated, funds, surplus };
 }

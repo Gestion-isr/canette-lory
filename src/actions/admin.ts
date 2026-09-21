@@ -144,33 +144,31 @@ async function uploadGoalImage(file: FormDataEntryValue | null): Promise<{ url: 
   return { url: admin.storage.from("objectifs").getPublicUrl(path).data.publicUrl };
 }
 
-export async function setGoal(_prev: ActionState, formData: FormData): Promise<ActionState> {
+export async function addGoal(_prev: ActionState, formData: FormData): Promise<ActionState> {
   await requireAdmin();
   const title = String(formData.get("title") ?? "").trim().slice(0, 100);
   const target_amount = parseFloat(String(formData.get("target_amount") ?? "").replace(",", "."));
-  const started_at = String(formData.get("started_at") ?? "");
   if (!title) return { error: "Donne un nom à l'objectif." };
   if (!Number.isFinite(target_amount) || target_amount <= 0) return { error: "Montant cible invalide." };
-  if (!ISO_DATE.test(started_at)) return { error: "Date de départ invalide." };
 
   const img = await uploadGoalImage(formData.get("image"));
   if (img.error) return { error: img.error };
 
   const admin = createAdminClient();
-  // Un seul objectif actif à la fois
-  await admin.from("goals").update({ active: false }).eq("active", true);
-  const { error } = await admin.from("goals").insert({ title, target_amount, started_at, active: true, image_url: img.url });
+  const { data: last } = await admin.from("goals").select("position").eq("active", true).order("position", { ascending: false }).limit(1).maybeSingle();
+  const position = (last?.position ?? -1) + 1;
+  const { error } = await admin.from("goals").insert({ title, target_amount, active: true, image_url: img.url, position });
   if (error)
     return {
-      error: error.message.includes("image_url")
-        ? "La colonne image_url manque : exécute supabase/migrations/0004_photo_objectif.sql dans Supabase."
+      error: error.message.includes("position")
+        ? "La colonne position manque : exécute supabase/migrations/0005_objectifs_multiples.sql dans Supabase."
         : "Impossible de créer l'objectif.",
     };
   revalidateAll();
-  return { ok: true, message: "Nouvel objectif défini !" };
+  return { ok: true, message: "Objectif ajouté !" };
 }
 
-/** Change (ou retire) la photo de l'objectif actif. */
+/** Change (ou retire) la photo d'un objectif. */
 export async function updateGoalImage(_prev: ActionState, formData: FormData): Promise<ActionState> {
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
@@ -191,21 +189,36 @@ export async function updateGoalImage(_prev: ActionState, formData: FormData): P
   return { ok: true, message: remove ? "Photo retirée." : "Photo enregistrée !" };
 }
 
-/** Recule la date de départ de l'objectif au premier dépôt, pour inclure les dépôts antérieurs. */
-export async function includeAllDepositsInGoal(id: string): Promise<ActionState> {
+/** Objectif atteint : archivé, et son montant est retiré de la cagnotte. */
+export async function markGoalAchieved(id: string): Promise<ActionState> {
   await requireAdmin();
   const admin = createAdminClient();
-  const { data: first } = await admin.from("deposits").select("deposited_at").order("deposited_at").limit(1).maybeSingle();
-  if (!first) return { error: "Aucun dépôt." };
-  await admin.from("goals").update({ started_at: first.deposited_at }).eq("id", id);
+  const { data: g } = await admin.from("goals").select("target_amount").eq("id", id).single();
+  if (!g) return { error: "Objectif introuvable." };
+  await admin.from("goals").update({ active: false, achieved_at: new Date().toISOString(), spent_amount: g.target_amount }).eq("id", id);
   revalidateAll();
   return { ok: true };
 }
 
-export async function markGoalAchieved(id: string): Promise<ActionState> {
+export async function deleteGoal(id: string): Promise<ActionState> {
   await requireAdmin();
   const admin = createAdminClient();
-  await admin.from("goals").update({ active: false, achieved_at: new Date().toISOString() }).eq("id", id);
+  await admin.from("goals").delete().eq("id", id).eq("active", true);
+  revalidateAll();
+  return { ok: true };
+}
+
+/** Monte ou descend un objectif dans l'ordre de priorité. */
+export async function moveGoal(id: string, direction: "up" | "down"): Promise<ActionState> {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { data } = await admin.from("goals").select("id, position, created_at").eq("active", true).order("position").order("created_at");
+  const list = data ?? [];
+  const idx = list.findIndex((g) => g.id === id);
+  const swap = direction === "up" ? idx - 1 : idx + 1;
+  if (idx < 0 || swap < 0 || swap >= list.length) return { ok: true };
+  [list[idx], list[swap]] = [list[swap], list[idx]];
+  await Promise.all(list.map((g, i) => admin.from("goals").update({ position: i }).eq("id", g.id)));
   revalidateAll();
   return { ok: true };
 }

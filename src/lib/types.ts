@@ -53,17 +53,28 @@ export type Recurrence = {
   created_at: string;
 };
 
-export type GoalProgress = {
-  goal_id: string;
+export type Goal = {
+  id: string;
   title: string;
   target_amount: number;
-  started_at: string;
-  raised_amount: number;
-  raised_donations: number;
+  position: number;
+  image_url: string | null;
+  active: boolean;
+  achieved_at: string | null;
+  spent_amount: number | null;
+  created_at: string;
+};
+
+/** Objectif actif avec le montant qui lui est attribué par la cascade. */
+export type GoalProgress = Goal & { raised_amount: number };
+
+export type Funds = {
   total_amount: number;
   total_donations: number;
   total_cans: number;
-  image_url: string | null;
+  spent_amount: number;
+  /** Cagnotte disponible pour les objectifs actifs = total - dépensé */
+  available: number;
 };
 
 export type DepositKind = "cannettes" | "don";

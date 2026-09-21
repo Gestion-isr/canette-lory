@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/supabase/server";
-import { getGoalProgress, getSettings } from "@/lib/data";
+import { getGoals, getSettings } from "@/lib/data";
 import { LoginForm } from "@/components/LoginForm";
-import { GoalProgressBar } from "@/components/GoalProgressBar";
+import { GoalList } from "@/components/GoalProgressBar";
 
 export default async function HomePage({
   searchParams,
@@ -14,7 +14,8 @@ export default async function HomePage({
   if (profile) redirect(profile.is_admin ? "/admin" : "/mon-compte");
 
   const { suite, erreur } = await searchParams;
-  const [settings, goal] = await Promise.all([getSettings().catch(() => null), getGoalProgress().catch(() => null)]);
+  const [settings, goalsData] = await Promise.all([getSettings().catch(() => null), getGoals().catch(() => null)]);
+  const goals = goalsData?.goals ?? [];
   const childName = settings?.child_name ?? "Lory";
 
   return (
@@ -43,9 +44,9 @@ export default async function HomePage({
             Historique des collectes
           </Link>
         </p>
-        {goal && settings?.show_goal_to_citizens && (
+        {goals.length > 0 && settings?.show_goal_to_citizens && (
           <div className="mt-6">
-            <GoalProgressBar goal={goal} />
+            <GoalList goals={goals} />
           </div>
         )}
       </div>

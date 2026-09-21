@@ -2,9 +2,9 @@ import Link from "next/link";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { createAdminClient } from "@/lib/supabase/server";
-import { getGoalProgress, getSettings } from "@/lib/data";
+import { getGoals, getSettings } from "@/lib/data";
 import { formatDateLong, formatMoney, formatNumber } from "@/lib/format";
-import { GoalProgressBar } from "@/components/GoalProgressBar";
+import { GoalList } from "@/components/GoalProgressBar";
 
 export const dynamic = "force-dynamic";
 
@@ -13,9 +13,9 @@ type MonthRow = { key: string; label: string; amount: number; donations: number;
 export default async function HistoriquePage() {
   // Lecture côté serveur avec la clé service : seules des données agrégées (sans nom) sont affichées.
   const admin = createAdminClient();
-  const [settings, goal, { data: deposits }, { data: pickups }, { data: pastGoals }, { count: citizens }] = await Promise.all([
+  const [settings, { goals }, { data: deposits }, { data: pickups }, { data: pastGoals }, { count: citizens }] = await Promise.all([
     getSettings(),
-    getGoalProgress(),
+    getGoals(),
     admin.from("deposits").select("amount, cans_count, deposited_at, kind").order("deposited_at"),
     admin.from("pickup_requests").select("requested_date").eq("status", "completee").order("requested_date"),
     admin.from("goals").select("title, target_amount, achieved_at, started_at, image_url").not("achieved_at", "is", null).order("achieved_at", { ascending: false }),
@@ -71,7 +71,7 @@ export default async function HistoriquePage() {
         ))}
       </div>
 
-      {goal && settings.show_goal_to_citizens && <GoalProgressBar goal={goal} />}
+      {goals.length > 0 && settings.show_goal_to_citizens && <GoalList goals={goals} />}
 
       {(pastGoals ?? []).length > 0 && (
         <section className="card">

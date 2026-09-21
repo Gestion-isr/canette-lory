@@ -1,7 +1,7 @@
 import { formatMoney } from "@/lib/format";
 import type { GoalProgress } from "@/lib/types";
 
-export function GoalProgressBar({ goal, compact = false }: { goal: GoalProgress; compact?: boolean }) {
+export function GoalProgressBar({ goal, compact = false, rank }: { goal: GoalProgress; compact?: boolean; rank?: number }) {
   const pct = Math.min(100, Math.round((goal.raised_amount / goal.target_amount) * 100));
   const done = goal.raised_amount >= goal.target_amount;
   return (
@@ -18,7 +18,7 @@ export function GoalProgressBar({ goal, compact = false }: { goal: GoalProgress;
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Objectif</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{rank ? `Objectif ${rank}` : "Objectif"}</p>
               <p className="text-lg font-bold text-gray-900">
                 {done ? "🎉 " : "🎯 "}
                 {goal.title}
@@ -42,12 +42,21 @@ export function GoalProgressBar({ goal, compact = false }: { goal: GoalProgress;
               style={{ width: `${pct}%` }}
             />
           </div>
-          <div className="mt-1.5 flex items-center justify-between text-xs text-gray-500">
-            <span>{goal.raised_donations > 0 ? `dont ${formatMoney(goal.raised_donations)} en dons 💛` : ""}</span>
-            <span className="font-semibold">{pct} %</span>
-          </div>
+          <p className="mt-1.5 text-right text-xs font-semibold text-gray-500">{pct} %</p>
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Liste des objectifs actifs, dans l'ordre de priorité. */
+export function GoalList({ goals, compact = false }: { goals: GoalProgress[]; compact?: boolean }) {
+  if (goals.length === 0) return null;
+  return (
+    <div className={compact ? "space-y-4" : "space-y-3"}>
+      {goals.map((g, i) => (
+        <GoalProgressBar key={g.id} goal={g} compact={compact} rank={goals.length > 1 ? i + 1 : undefined} />
+      ))}
     </div>
   );
 }
