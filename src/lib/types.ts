@@ -6,6 +6,7 @@ export type Profile = {
   address: string | null;
   lat: number | null;
   lng: number | null;
+  pickup_note: string | null;
   is_admin: boolean;
   created_at: string;
 };
@@ -42,7 +43,7 @@ export type PickupRequest = {
 };
 
 export type PickupWithProfile = PickupRequest & {
-  profiles: Pick<Profile, "full_name" | "email" | "phone" | "address" | "lat" | "lng">;
+  profiles: Pick<Profile, "full_name" | "email" | "phone" | "address" | "lat" | "lng" | "pickup_note">;
 };
 
 export type Recurrence = {

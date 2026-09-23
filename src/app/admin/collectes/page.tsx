@@ -20,7 +20,7 @@ export default async function CollectesPage({ searchParams }: { searchParams: Pr
   const admin = createAdminClient();
   const today = toISODate(new Date());
 
-  let query = admin.from("pickup_requests").select("*, profiles(full_name, email, phone, address, lat, lng)");
+  let query = admin.from("pickup_requests").select("*, profiles(full_name, email, phone, address, lat, lng, pickup_note)");
   if (filtre === "a_venir") query = query.eq("status", "en_attente").gte("requested_date", today).order("requested_date");
   else if (filtre === "passees") query = query.eq("status", "en_attente").lt("requested_date", today).order("requested_date", { ascending: false });
   else if (filtre === "completee" || filtre === "annulee")

@@ -39,7 +39,7 @@ export function RoutePlanner({ pickups, home }: Props) {
 
   const copyList = async () => {
     const text = ordered
-      .map((s, i) => `${i + 1}. ${s.pickup.profiles.full_name ?? s.pickup.profiles.email} — ${s.pickup.profiles.address ?? ""}${s.pickup.note ? ` (${s.pickup.note})` : ""}`)
+      .map((s, i) => `${i + 1}. ${s.pickup.profiles.full_name ?? s.pickup.profiles.email} — ${s.pickup.profiles.address ?? ""}${s.pickup.profiles.pickup_note ? ` [${s.pickup.profiles.pickup_note}]` : ""}${s.pickup.note ? ` (${s.pickup.note})` : ""}`)
       .join("\n");
     await navigator.clipboard.writeText(text);
     alert("Liste copiée !");
@@ -67,6 +67,7 @@ export function RoutePlanner({ pickups, home }: Props) {
                 </p>
                 <p>{s.pickup.profiles.address}</p>
                 {s.pickup.estimated_bags && <p>{s.pickup.estimated_bags} sac(s)</p>}
+                {s.pickup.profiles.pickup_note && <p className="text-brand-800">📌 {s.pickup.profiles.pickup_note}</p>}
                 {s.pickup.note && <p className="italic">« {s.pickup.note} »</p>}
               </div>
             ),
@@ -122,6 +123,7 @@ export function RoutePlanner({ pickups, home }: Props) {
                       {s.pickup.estimated_bags ? `${s.pickup.estimated_bags} sac(s)` : ""}
                       {s.pickup.profiles.phone ? ` · 📞 ${s.pickup.profiles.phone}` : ""}
                     </p>
+                    {s.pickup.profiles.pickup_note && <p className="text-xs text-brand-800">📌 {s.pickup.profiles.pickup_note}</p>}
                     {s.pickup.note && <p className="text-xs italic text-gray-500">« {s.pickup.note} »</p>}
                   </div>
                 </li>

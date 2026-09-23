@@ -26,7 +26,7 @@ export default async function AdminDashboard() {
       admin.from("pickup_requests").select("*", { count: "exact", head: true }).eq("status", "completee"),
       admin
         .from("pickup_requests")
-        .select("*, profiles(full_name, email, phone, address, lat, lng)")
+        .select("*, profiles(full_name, email, phone, address, lat, lng, pickup_note)")
         .eq("status", "en_attente")
         .gte("requested_date", today)
         .lte("requested_date", weekEnd)

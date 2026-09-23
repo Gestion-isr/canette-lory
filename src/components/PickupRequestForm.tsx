@@ -10,10 +10,12 @@ export function PickupRequestForm({
   availability,
   hasAddress,
   hasActiveRecurrence,
+  pickupNote,
 }: {
   availability: DayAvailability[];
   hasAddress: boolean;
   hasActiveRecurrence: boolean;
+  pickupNote?: string | null;
 }) {
   const [state, action, pending] = useActionState<ActionState, FormData>(createPickup, {});
   const [date, setDate] = useState<string | null>(null);
@@ -75,9 +77,14 @@ export function PickupRequestForm({
 
       <div>
         <label className="label" htmlFor="note">
-          Note <span className="font-normal text-gray-400">(optionnel)</span>
+          Note pour cette collecte <span className="font-normal text-gray-400">(optionnel)</span>
         </label>
         <textarea id="note" name="note" rows={2} className="input" placeholder="Ex. : sacs à côté du garage, derrière la clôture…" maxLength={500} />
+        {pickupNote && (
+          <p className="mt-1 text-xs text-gray-500">
+            📌 Votre note permanente sera aussi transmise : « {pickupNote} »
+          </p>
+        )}
       </div>
 
       {state.error && <p className="alert-error">{state.error}</p>}

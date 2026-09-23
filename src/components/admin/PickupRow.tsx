@@ -27,6 +27,7 @@ export function PickupRow({ pickup, showDate = true }: { pickup: PickupWithProfi
             {pickup.estimated_bags ? ` · ${pickup.estimated_bags} sac(s)` : ""}
             {pickup.recurrence_id ? " · 🔁 récurrente" : ""}
           </p>
+          {p?.pickup_note && <p className="mt-1 text-xs text-brand-800">📌 {p.pickup_note}</p>}
           {pickup.note && <p className="mt-1 text-xs italic text-gray-500">« {pickup.note} »</p>}
         </div>
         <div className="flex items-center gap-2">

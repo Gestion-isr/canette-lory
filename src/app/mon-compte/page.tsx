@@ -40,7 +40,7 @@ export default async function MonComptePage() {
 
       <section className="card">
         <h2 className="mb-3 text-lg font-bold">🏠 Mon adresse</h2>
-        <ProfileForm profile={profile} center={[settings.home_lat, settings.home_lng]} />
+        <ProfileForm profile={profile} />
       </section>
 
       <section className="card">
@@ -50,7 +50,12 @@ export default async function MonComptePage() {
             ? "Période estivale : collectes possibles tous les jours indiqués en vert."
             : "Période hivernale : collectes la fin de semaine seulement."}
         </p>
-        <PickupRequestForm availability={availability} hasAddress={hasAddress} hasActiveRecurrence={activeRec.length > 0} />
+        <PickupRequestForm
+          availability={availability}
+          hasAddress={hasAddress}
+          hasActiveRecurrence={activeRec.length > 0}
+          pickupNote={profile.pickup_note}
+        />
       </section>
 
       <section className="card">

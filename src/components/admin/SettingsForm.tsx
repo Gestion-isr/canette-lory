@@ -5,6 +5,7 @@ import { addBlockedDate, removeBlockedDate, updateSettings } from "@/actions/adm
 import type { ActionState } from "@/actions/pickups";
 import { WEEKDAY_LABELS, type Settings } from "@/lib/types";
 import { formatDateLong } from "@/lib/format";
+import { AddressPicker } from "@/components/AddressPicker";
 
 export function SettingsForm({ settings, blocked }: { settings: Settings; blocked: { date: string; reason: string | null }[] }) {
   const [state, action, pending] = useActionState<ActionState, FormData>(updateSettings, {});
@@ -81,15 +82,13 @@ export function SettingsForm({ settings, blocked }: { settings: Settings; blocke
           </div>
         </div>
 
-        <div>
-          <label className="label" htmlFor="home_address">
-            Adresse de départ (maison) – pour le calcul du trajet
-          </label>
-          <input id="home_address" name="home_address" defaultValue={settings.home_address ?? ""} className="input" placeholder="123 rue Saint-Pierre" />
-          <p className="mt-1 text-xs text-gray-500">
-            Position actuelle : {settings.home_lat.toFixed(5)}, {settings.home_lng.toFixed(5)}
-          </p>
-        </div>
+        <AddressPicker
+          defaultValue={{ address: settings.home_address ?? "", lat: settings.home_address ? settings.home_lat : null, lng: settings.home_address ? settings.home_lng : null }}
+          names={{ address: "home_address", lat: "home_lat", lng: "home_lng" }}
+          label="Adresse de départ (maison) – point de départ des trajets"
+          hint="Tapez le numéro et la rue, puis choisissez dans la liste."
+          mapHeight="h-56"
+        />
 
         <div>
           <label className="label" htmlFor="about_text">

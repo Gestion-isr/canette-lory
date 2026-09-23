@@ -28,7 +28,7 @@ export default async function CartePage({ searchParams }: { searchParams: Promis
   const { data } = date
     ? await admin
         .from("pickup_requests")
-        .select("*, profiles(full_name, email, phone, address, lat, lng)")
+        .select("*, profiles(full_name, email, phone, address, lat, lng, pickup_note)")
         .eq("status", "en_attente")
         .eq("requested_date", date)
     : { data: [] };

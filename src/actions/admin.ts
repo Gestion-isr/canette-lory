@@ -35,11 +35,20 @@ export async function updateSettings(_prev: ActionState, formData: FormData): Pr
   const about_text = String(formData.get("about_text") ?? "").trim().slice(0, 5000) || null;
 
   const { data: current } = await admin.from("settings").select("home_address, home_lat, home_lng").eq("id", 1).single();
+  const latRaw = parseFloat(String(formData.get("home_lat") ?? ""));
+  const lngRaw = parseFloat(String(formData.get("home_lng") ?? ""));
   let home_lat = current?.home_lat ?? 45.915;
   let home_lng = current?.home_lng ?? -72.465;
-  if (home_address && home_address !== current?.home_address) {
+
+  if (home_address && Number.isFinite(latRaw) && Number.isFinite(lngRaw)) {
+    // Coordonnées choisies dans la liste ou ajustées sur la carte
+    home_lat = latRaw;
+    home_lng = lngRaw;
+  } else if (home_address && home_address !== current?.home_address) {
+    // Filet de sécurité : adresse tapée sans choisir de suggestion
     const results = await geocodeAddress(home_address);
-    if (results.length === 0) return { error: "Adresse de départ introuvable." };
+    if (results.length === 0)
+      return { error: "Adresse de départ introuvable. Choisis une suggestion dans la liste, ou place le point sur la carte." };
     home_lat = results[0].lat;
     home_lng = results[0].lng;
   }
