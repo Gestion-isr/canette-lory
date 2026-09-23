@@ -22,7 +22,8 @@ const adminLinks = [
 export function Nav({ profile }: { profile: Profile | null }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const links = [...publicLinks, ...(profile ? citizenLinks : []), ...(profile?.is_admin ? adminLinks : [])];
+  // Les admins gèrent leur mot de passe dans Paramètres : pas besoin de « Mon compte »
+  const links = [...publicLinks, ...(profile && !profile.is_admin ? citizenLinks : []), ...(profile?.is_admin ? adminLinks : [])];
 
   const linkClass = (href: string, mobile = false) =>
     `${mobile ? "block px-3 py-2" : "px-3 py-1.5"} rounded-lg text-sm font-medium ${
