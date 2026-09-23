@@ -36,12 +36,16 @@ export default async function HomePage({
           <li>♻️ Un geste simple pour l&apos;environnement et pour un projet jeunesse</li>
         </ul>
         <p className="mt-4 text-sm">
+          <Link href="/fonctionnement" className="font-semibold text-brand-700 hover:underline">
+            Comment ça marche
+          </Link>
+          <span className="mx-2 text-gray-300">·</span>
           <Link href="/a-propos" className="font-semibold text-brand-700 hover:underline">
-            En savoir plus sur le projet
+            À propos de moi
           </Link>
           <span className="mx-2 text-gray-300">·</span>
           <Link href="/historique" className="font-semibold text-brand-700 hover:underline">
-            Historique des collectes
+            Historique
           </Link>
         </p>
         {goals.length > 0 && settings?.show_goal_to_citizens && (

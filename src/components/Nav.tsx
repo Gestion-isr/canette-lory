@@ -7,6 +7,7 @@ import { signOut } from "@/actions/auth";
 import type { Profile } from "@/lib/types";
 
 const publicLinks = [
+  { href: "/fonctionnement", label: "Fonctionnement" },
   { href: "/a-propos", label: "À propos" },
   { href: "/historique", label: "Historique" },
 ];

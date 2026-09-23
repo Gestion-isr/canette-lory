@@ -12,7 +12,7 @@ async function requireAdmin() {
 }
 
 function revalidateAll() {
-  for (const p of ["/", "/a-propos", "/historique", "/mon-compte", "/admin", "/admin/collectes", "/admin/carte", "/admin/parametres", "/admin/citoyens"])
+  for (const p of ["/", "/fonctionnement", "/a-propos", "/historique", "/mon-compte", "/admin", "/admin/collectes", "/admin/carte", "/admin/parametres", "/admin/citoyens"])
     revalidatePath(p);
 }
 

@@ -122,8 +122,8 @@ export default async function HistoriquePage() {
       </section>
 
       <p className="text-center text-sm text-gray-500">
-        <Link href="/a-propos" className="text-brand-700 hover:underline">
-          ← En savoir plus sur le projet
+        <Link href="/fonctionnement" className="text-brand-700 hover:underline">
+          ← Comment ça marche
         </Link>
       </p>
     </div>
