@@ -104,7 +104,7 @@ export default function MapView({
         {routeLine && routeLine.length > 1 && (
           <Polyline
             positions={routeLine}
-            pathOptions={{ color: "#059669", weight: 5, opacity: 0.85, dashArray: solidLine ? undefined : "8 6" }}
+            pathOptions={{ color: "#db2777", weight: 5, opacity: 0.85, dashArray: solidLine ? undefined : "8 6" }}
           />
         )}
         {home && (
@@ -116,7 +116,7 @@ export default function MapView({
           <Marker
             key={m.id}
             position={[m.lat, m.lng]}
-            icon={pinIcon(m.color ?? "#059669", m.number)}
+            icon={pinIcon(m.color ?? "#db2777", m.number)}
             draggable={m.draggable}
             eventHandlers={
               m.onDragEnd

@@ -13,10 +13,10 @@ const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 function layout(title: string, body: string) {
   return `
   <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#1f2937">
-    <h1 style="font-size:20px;color:#047857;margin:0 0 16px">${title}</h1>
+    <h1 style="font-size:20px;color:#be185d;margin:0 0 16px">${title}</h1>
     ${body}
     <p style="margin-top:32px;font-size:13px;color:#6b7280">
-      <a href="${SITE}/mon-compte" style="color:#047857">Gérer mes collectes</a> · Collecte de cannettes – Saint-Charles-de-Drummond
+      <a href="${SITE}/mon-compte" style="color:#be185d">Gérer mes collectes</a> · Collecte de cannettes – Saint-Charles-de-Drummond
     </p>
   </div>`;
 }

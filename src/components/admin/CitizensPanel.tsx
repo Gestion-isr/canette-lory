@@ -70,7 +70,7 @@ export function CitizensPanel({
             id: c.id,
             lat: c.lat as number,
             lng: c.lng as number,
-            color: c.id === selected ? "#f59e0b" : "#059669",
+            color: c.id === selected ? "#f59e0b" : "#db2777",
             draggable: c.id === selected,
             onDragEnd: c.id === selected ? (lat, lng) => start(async () => { await adminUpdateCitizenLocation(c.id, lat, lng); }) : undefined,
             popup: (
