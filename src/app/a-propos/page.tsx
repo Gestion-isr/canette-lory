@@ -3,6 +3,7 @@ import { getGoals, getSettings } from "@/lib/data";
 import { getCurrentProfile } from "@/lib/supabase/server";
 import { GoalList } from "@/components/GoalProgressBar";
 import { SimpleText } from "@/components/SimpleText";
+import { ContainerGuide } from "@/components/ContainerGuide";
 import { defaultAboutText } from "@/lib/about";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +31,22 @@ export default async function AProposPage() {
       <section className="card">
         <SimpleText text={text} />
       </section>
+
+      <div>
+        <h2 className="mb-1 text-lg font-bold">🥫 Quoi mettre dans le sac</h2>
+        <p className="mb-3 text-sm text-gray-500">
+          Au Québec, la consigne s&apos;applique aux contenants de boisson de 100 ml à 2 L en aluminium et en plastique, ainsi qu&apos;aux
+          bouteilles de verre de bière et de boisson gazeuse.
+        </p>
+        <ContainerGuide />
+        <p className="mt-3 text-xs text-gray-500">
+          Un doute sur un contenant ? Cherchez le logo de la consigne imprimé dessus, ou consultez{" "}
+          <a href="https://consignaction.ca/consigne/quoi-consigner/contenants-vises-non-vises/" target="_blank" rel="noopener noreferrer" className="text-brand-700 underline">
+            la liste officielle de Consignaction
+          </a>
+          . Dans le doute, mettez-le dans le sac : {settings.child_name} fera le tri.
+        </p>
+      </div>
 
       <section className="card">
         <h2 className="mb-3 text-lg font-bold">Comment ça marche</h2>
