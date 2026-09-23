@@ -23,11 +23,11 @@ export default async function HomePage({
       <div>
         <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-brand-600">Saint-Charles-de-Drummond</p>
         <h1 className="text-3xl font-extrabold leading-tight text-gray-900 sm:text-4xl">
-          {childName} ramasse vos cannettes vides, directement chez vous.
+          Je ramasse vos cannettes vides, directement chez vous.
         </h1>
         <p className="mt-4 text-gray-600">
-          Créez votre compte, entrez votre adresse et choisissez une date. {childName} passe chercher vos
-          sacs et les consignes servent à financer son objectif.
+          Bonjour, je m&apos;appelle {childName} ! Créez votre compte, entrez votre adresse et choisissez une date : je passe chercher vos
+          sacs, et les consignes servent à financer mes projets.
         </p>
         <ul className="mt-5 space-y-2 text-sm text-gray-700">
           <li>✅ Gratuit et sans engagement</li>
