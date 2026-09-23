@@ -4,7 +4,7 @@ export function defaultAboutText(name: string) {
 
 👋 Bonjour ! Je m'appelle ${name}, j'ai 11 ans.
 
-Avec l'aide de mon père, j'ai lancé ma petite entreprise de collecte de cannettes consignées pour financer mes projets. Mon père m'a dit que je devais apprendre la valeur de l'argent 🤨
+Avec l'aide de mon père, j'ai lancé ma petite entreprise de collecte de cannettes consignées pour financer mes projets. Mon père m'a dit que je devais apprendre la valeur de l'argent 🫠
 
 Plutôt que de vous déplacer au dépanneur, je passe chercher vos cannettes directement chez vous, la journée qui vous convient. C'est gratuit, simple, et ça évite que les contenants consignés finissent au bac de recyclage. ♻️
 
