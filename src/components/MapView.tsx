@@ -21,6 +21,8 @@ export type MapViewProps = {
   markers?: MapMarker[];
   home?: { lat: number; lng: number };
   routeLine?: [number, number][];
+  /** Trait plein (vrai trajet routier) au lieu de pointillés (vol d'oiseau) */
+  solidLine?: boolean;
   onClick?: (lat: number, lng: number) => void;
   fitToMarkers?: boolean;
   className?: string;
@@ -79,6 +81,7 @@ export default function MapView({
   markers = [],
   home,
   routeLine,
+  solidLine = false,
   onClick,
   fitToMarkers = false,
   className = "h-80 w-full",
@@ -99,7 +102,10 @@ export default function MapView({
         <ClickHandler onClick={onClick} />
         {fitToMarkers && <FitBounds points={fitPoints} />}
         {routeLine && routeLine.length > 1 && (
-          <Polyline positions={routeLine} pathOptions={{ color: "#059669", weight: 4, opacity: 0.8, dashArray: "8 6" }} />
+          <Polyline
+            positions={routeLine}
+            pathOptions={{ color: "#059669", weight: 5, opacity: 0.85, dashArray: solidLine ? undefined : "8 6" }}
+          />
         )}
         {home && (
           <Marker position={[home.lat, home.lng]} icon={homeIcon}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Map } from "@/components/Map";
 import { googleMapsLinks, haversineKm, optimizeRoute } from "@/lib/route";
 import type { PickupWithProfile } from "@/lib/types";
@@ -10,9 +10,14 @@ type Props = {
   home: { lat: number; lng: number; address: string | null };
 };
 
+type RoadRoute = { order: number[]; geometry: [number, number][]; distanceKm: number; durationMin: number };
+
 export function RoutePlanner({ pickups, home }: Props) {
   const [roundTrip, setRoundTrip] = useState(true);
   const [optimized, setOptimized] = useState(true);
+  const [road, setRoad] = useState<RoadRoute | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [roadFailed, setRoadFailed] = useState(false);
 
   const located = pickups.filter((p) => p.profiles?.lat != null && p.profiles?.lng != null);
   const missing = pickups.filter((p) => p.profiles?.lat == null || p.profiles?.lng == null);
@@ -22,7 +27,8 @@ export function RoutePlanner({ pickups, home }: Props) {
     [located],
   );
 
-  const { ordered, distanceKm } = useMemo(() => {
+  // Ordre de secours (vol d'oiseau), affiché tant que le calcul routier n'a pas répondu
+  const fallback = useMemo(() => {
     if (!optimized) {
       let d = 0;
       const pts = [home, ...stops, ...(roundTrip ? [home] : [])];
@@ -32,8 +38,50 @@ export function RoutePlanner({ pickups, home }: Props) {
     return optimizeRoute(home, stops, roundTrip);
   }, [stops, home, roundTrip, optimized]);
 
-  const line: [number, number][] = [[home.lat, home.lng], ...ordered.map((s) => [s.lat, s.lng] as [number, number])];
-  if (roundTrip && ordered.length > 0) line.push([home.lat, home.lng]);
+  // Trajet par les vraies rues (OSRM), calculé côté serveur
+  const key = `${optimized}|${roundTrip}|${stops.map((s) => s.id).join(",")}`;
+  useEffect(() => {
+    if (stops.length === 0) {
+      setRoad(null);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    setRoadFailed(false);
+    fetch("/api/trajet", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        home: { lat: home.lat, lng: home.lng },
+        stops: stops.map((s) => ({ lat: s.lat, lng: s.lng })),
+        roundTrip,
+        optimize: optimized,
+      }),
+    })
+      .then((r) => r.json())
+      .then((data: { route: RoadRoute | null }) => {
+        if (cancelled) return;
+        setRoad(data.route);
+        setRoadFailed(!data.route);
+      })
+      .catch(() => {
+        if (!cancelled) setRoadFailed(true);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, home.lat, home.lng]);
+
+  const ordered = road ? road.order.map((i) => stops[i]).filter(Boolean) : fallback.ordered;
+  const distanceKm = road?.distanceKm ?? fallback.distanceKm;
+
+  const straightLine: [number, number][] = [[home.lat, home.lng], ...ordered.map((s) => [s.lat, s.lng] as [number, number])];
+  if (roundTrip && ordered.length > 0) straightLine.push([home.lat, home.lng]);
+  const line = road?.geometry ?? straightLine;
 
   const links = googleMapsLinks(home, ordered, 9);
 
@@ -54,6 +102,7 @@ export function RoutePlanner({ pickups, home }: Props) {
           home={home}
           fitToMarkers
           routeLine={line}
+          solidLine={!!road}
           className="h-[420px] w-full sm:h-[520px]"
           markers={ordered.map((s, i) => ({
             id: s.id,
@@ -74,8 +123,25 @@ export function RoutePlanner({ pickups, home }: Props) {
           }))}
         />
         <p className="mt-2 text-xs text-gray-500">
-          Distance estimée (à vol d&apos;oiseau) : <strong>{distanceKm.toFixed(1)} km</strong> · Départ 🏠 {home.address ?? "point de départ (à définir dans Paramètres)"}
+          {loading ? (
+            "Calcul du trajet par les rues…"
+          ) : road ? (
+            <>
+              Trajet par les rues : <strong>{distanceKm.toFixed(1)} km</strong> · environ {Math.round(road.durationMin)} min en auto
+            </>
+          ) : (
+            <>
+              Distance estimée (à vol d&apos;oiseau) : <strong>{distanceKm.toFixed(1)} km</strong>
+            </>
+          )}
+          {" · Départ 🏠 "}
+          {home.address ?? "point de départ (à définir dans Paramètres)"}
         </p>
+        {roadFailed && !loading && stops.length > 0 && (
+          <p className="mt-1 text-xs text-amber-700">
+            ⚠️ Le service de calcul d&apos;itinéraire n&apos;a pas répondu : affichage à vol d&apos;oiseau. Réessaie dans un instant.
+          </p>
+        )}
       </div>
 
       <div className="space-y-3 lg:col-span-2">
