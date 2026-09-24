@@ -125,7 +125,7 @@ export function AddressMap({ state, className = "h-64" }: { state: AddressState;
   const { value, setValue } = state;
   if (value.lat == null || value.lng == null) {
     return (
-      <div className={`flex ${className} items-center justify-center rounded-2xl bg-gray-50 text-center text-sm text-gray-500 ring-1 ring-black/5`}>
+      <div className={`flex ${className} items-center justify-center rounded-2xl bg-gray-50 p-4 text-center text-sm text-gray-500 ring-1 ring-black/5`}>
         Choisissez une adresse dans la liste
         <br />
         pour la voir sur la carte.

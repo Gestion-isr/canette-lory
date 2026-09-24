@@ -1,25 +1,24 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/server";
-import { getGoals, getSettings } from "@/lib/data";
+import { toISODate } from "@/lib/availability";
+
 import { formatDateLong, formatMoney, formatNumber } from "@/lib/format";
-import { GoalList } from "@/components/GoalProgressBar";
 
 export const dynamic = "force-dynamic";
 
 /** Une journée de collecte : les arrêts de la journée regroupés. */
-type Journee = { date: string; arrets: number; cans: number };
+type Journee = { date: string; arrets: number; cans: number; completes: number };
 
 export default async function HistoriquePage() {
   // Lecture avec la clé service : seules des données agrégées (sans nom ni adresse) sont affichées.
   const admin = createAdminClient();
-  const [settings, { goals }, { data: deposits }, { data: pickups }, { data: pastGoals }, { count: citizens }] = await Promise.all([
-    getSettings(),
-    getGoals(),
+  const [{ data: deposits }, { data: pickups }, { data: pastGoals }, { count: citizens }] = await Promise.all([
     admin.from("deposits").select("amount, cans_count, kind"),
     admin
       .from("pickup_requests")
-      .select("requested_date, cans_count")
-      .eq("status", "completee")
+      .select("requested_date, cans_count, status")
+      .neq("status", "annulee")
+      .lte("requested_date", toISODate(new Date()))
       .order("requested_date", { ascending: false }),
     admin
       .from("goals")
@@ -40,9 +39,10 @@ export default async function HistoriquePage() {
   // Les arrêts d'une même journée sont regroupés : c'est « une collecte » pour le public.
   const parJour = new Map<string, Journee>();
   for (const p of pickups ?? []) {
-    const j = parJour.get(p.requested_date) ?? { date: p.requested_date, arrets: 0, cans: 0 };
+    const j = parJour.get(p.requested_date) ?? { date: p.requested_date, arrets: 0, cans: 0, completes: 0 };
     j.arrets++;
     j.cans += p.cans_count ?? 0;
+    if (p.status === "completee") j.completes++;
     parJour.set(p.requested_date, j);
   }
   const journees = [...parJour.values()];
@@ -53,7 +53,7 @@ export default async function HistoriquePage() {
     { icon: "🥫", value: formatNumber(Math.max(cansDeposes, cansCollectes)), label: "cannettes ramassées" },
     { icon: "💰", value: formatMoney(consignes), label: "en consignes" },
     { icon: "💛", value: formatMoney(totalDonations), label: "en dons" },
-    { icon: "✅", value: formatNumber(pickups?.length ?? 0), label: "collectes complétées" },
+    { icon: "✅", value: formatNumber((pickups ?? []).filter((p) => p.status === "completee").length), label: "collectes complétées" },
     { icon: "🏘️", value: formatNumber(citizens ?? 0), label: "foyers participants" },
   ];
 
@@ -75,8 +75,6 @@ export default async function HistoriquePage() {
         ))}
       </div>
 
-      {goals.length > 0 && settings.show_goal_to_citizens && <GoalList goals={goals} />}
-
       <section className="card">
         <h2 className="mb-1 text-lg font-bold">📅 Chaque collecte</h2>
         <p className="mb-4 text-xs text-gray-500">
@@ -92,12 +90,14 @@ export default async function HistoriquePage() {
                   <span className="font-semibold capitalize">{formatDateLong(j.date)}</span>
                   <span className="text-gray-600">
                     {j.arrets} arrêt{j.arrets > 1 ? "s" : ""}
-                    {j.cans > 0 && (
+                    {j.cans > 0 ? (
                       <>
                         {" · "}
                         {formatNumber(j.cans)} cannettes
                         <span className="font-semibold text-brand-700"> · ≈ {formatMoney(j.cans * valeurParCannette)}</span>
                       </>
+                    ) : (
+                      <span className="text-gray-400"> · comptage à venir</span>
                     )}
                   </span>
                 </div>
