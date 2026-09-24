@@ -6,14 +6,17 @@ import { formatDateLong, formatMoney, formatNumber } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
-/** Une journée de collecte : les arrêts de la journée regroupés. */
-type Journee = { date: string; arrets: number; cans: number; completes: number };
+/**
+ * Une journée de l'historique : les arrêts chez les citoyens de cette date,
+ * et/ou les cannettes rapportées au comptoir ce jour-là (montant réel encaissé).
+ */
+type Journee = { date: string; arrets: number; cans: number; cansDepot: number; montantDepot: number };
 
 export default async function HistoriquePage() {
   // Lecture avec la clé service : seules des données agrégées (sans nom ni adresse) sont affichées.
   const admin = createAdminClient();
   const [{ data: deposits }, { data: pickups }, { data: pastGoals }, { count: citizens }] = await Promise.all([
-    admin.from("deposits").select("amount, cans_count, kind"),
+    admin.from("deposits").select("amount, cans_count, kind, deposited_at"),
     admin
       .from("pickup_requests")
       .select("requested_date, cans_count, status")
@@ -38,15 +41,26 @@ export default async function HistoriquePage() {
 
   // Les arrêts d'une même journée sont regroupés : c'est « une collecte » pour le public.
   const parJour = new Map<string, Journee>();
+  const jour = (date: string) => {
+    const j = parJour.get(date) ?? { date, arrets: 0, cans: 0, cansDepot: 0, montantDepot: 0 };
+    parJour.set(date, j);
+    return j;
+  };
   for (const p of pickups ?? []) {
-    const j = parJour.get(p.requested_date) ?? { date: p.requested_date, arrets: 0, cans: 0, completes: 0 };
+    const j = jour(p.requested_date);
     j.arrets++;
     j.cans += p.cans_count ?? 0;
-    if (p.status === "completee") j.completes++;
-    parJour.set(p.requested_date, j);
   }
-  const journees = [...parJour.values()];
-  const maxCans = Math.max(1, ...journees.map((j) => j.cans));
+  // Les journées où des cannettes ont été rapportées comptent aussi dans l'historique,
+  // même si elles ne venaient pas d'un citoyen (ex. les cannettes de la maison).
+  for (const d of deposits ?? []) {
+    if (d.kind === "don") continue;
+    const j = jour(d.deposited_at);
+    j.cansDepot += d.cans_count ?? 0;
+    j.montantDepot += Number(d.amount);
+  }
+  const journees = [...parJour.values()].sort((a, b) => (a.date < b.date ? 1 : -1));
+  const maxCans = Math.max(1, ...journees.map((j) => Math.max(j.cans, j.cansDepot)));
   const cansCollectes = journees.reduce((s, j) => s + j.cans, 0);
 
   const tiles = [
@@ -78,7 +92,7 @@ export default async function HistoriquePage() {
       <section className="card">
         <h2 className="mb-1 text-lg font-bold">📅 Chaque collecte</h2>
         <p className="mb-4 text-xs text-gray-500">
-          Montants estimés à partir du nombre de cannettes et de la valeur moyenne obtenue au retour des contenants.
+          Les montants des journées déjà rapportées au comptoir sont exacts ; les autres sont estimés (≈) à partir du nombre de cannettes.
         </p>
         {journees.length === 0 ? (
           <p className="text-sm text-gray-500">L&apos;aventure commence à peine — revenez bientôt !</p>
@@ -89,20 +103,32 @@ export default async function HistoriquePage() {
                 <div className="flex flex-wrap items-baseline justify-between gap-x-3 text-sm">
                   <span className="font-semibold capitalize">{formatDateLong(j.date)}</span>
                   <span className="text-gray-600">
-                    {j.arrets} arrêt{j.arrets > 1 ? "s" : ""}
-                    {j.cans > 0 ? (
+                    {j.arrets > 0 && (
                       <>
+                        {j.arrets} arrêt{j.arrets > 1 ? "s" : ""}
                         {" · "}
+                      </>
+                    )}
+                    {j.montantDepot > 0 ? (
+                      <>
+                        {j.cansDepot > 0 && <>{formatNumber(j.cansDepot)} cannettes · </>}
+                        <span className="font-semibold text-brand-700">{formatMoney(j.montantDepot)}</span>
+                      </>
+                    ) : j.cans > 0 ? (
+                      <>
                         {formatNumber(j.cans)} cannettes
                         <span className="font-semibold text-brand-700"> · ≈ {formatMoney(j.cans * valeurParCannette)}</span>
                       </>
                     ) : (
-                      <span className="text-gray-400"> · comptage à venir</span>
+                      <span className="text-gray-400">comptage à venir</span>
                     )}
                   </span>
                 </div>
                 <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-gray-100">
-                  <div className="h-full rounded-full bg-brand-500" style={{ width: `${Math.round((j.cans / maxCans) * 100)}%` }} />
+                  <div
+                    className="h-full rounded-full bg-brand-500"
+                    style={{ width: `${Math.round((Math.max(j.cans, j.cansDepot) / maxCans) * 100)}%` }}
+                  />
                 </div>
               </li>
             ))}
