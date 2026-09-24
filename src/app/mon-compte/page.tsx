@@ -1,10 +1,9 @@
 import { redirect } from "next/navigation";
 import { createClient, getCurrentProfile } from "@/lib/supabase/server";
-import { getAvailability, getGoals, getSettings } from "@/lib/data";
+import { getAvailability, getSettings } from "@/lib/data";
 import { ProfileForm } from "@/components/ProfileForm";
 import { PickupRequestForm } from "@/components/PickupRequestForm";
 import { CitizenPickupList } from "@/components/CitizenPickupList";
-import { GoalList } from "@/components/GoalProgressBar";
 import { PasswordForm } from "@/components/PasswordForm";
 import type { PickupRequest, Recurrence } from "@/lib/types";
 
@@ -16,9 +15,8 @@ export default async function MonComptePage() {
 
   const supabase = await createClient();
   const settings = await getSettings();
-  const [availability, { goals }, { data: pickups }, { data: recurrences }] = await Promise.all([
+  const [availability, { data: pickups }, { data: recurrences }] = await Promise.all([
     getAvailability(settings),
-    getGoals(),
     supabase.from("pickup_requests").select("*").eq("user_id", profile.id).order("requested_date", { ascending: false }),
     supabase.from("recurrences").select("*").eq("user_id", profile.id).eq("active", true),
   ]);
@@ -35,8 +33,6 @@ export default async function MonComptePage() {
           <PasswordForm />
         </div>
       </div>
-
-      {goals.length > 0 && settings.show_goal_to_citizens && <GoalList goals={goals} />}
 
       <section className="card">
         <h2 className="mb-3 text-lg font-bold">🏠 Mon adresse</h2>

@@ -10,7 +10,6 @@ export async function updateProfile(_prev: ActionState, formData: FormData): Pro
   if (!profile) return { error: "Non connecté." };
 
   const full_name = String(formData.get("full_name") ?? "").trim().slice(0, 100) || null;
-  const phone = String(formData.get("phone") ?? "").trim().slice(0, 30) || null;
   const pickup_note = String(formData.get("pickup_note") ?? "").trim().slice(0, 300) || null;
   const address = String(formData.get("address") ?? "").trim().slice(0, 200) || null;
   const latRaw = String(formData.get("lat") ?? "");
@@ -37,7 +36,7 @@ export async function updateProfile(_prev: ActionState, formData: FormData): Pro
   const supabase = await createClient();
   const { error } = await supabase
     .from("profiles")
-    .update({ full_name, phone, pickup_note, address, lat, lng, updated_at: new Date().toISOString() })
+    .update({ full_name, pickup_note, address, lat, lng, updated_at: new Date().toISOString() })
     .eq("id", profile.id);
   if (error)
     return {

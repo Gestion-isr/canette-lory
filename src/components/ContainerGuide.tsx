@@ -147,16 +147,16 @@ const REFUSES = [
 export function ContainerGuide() {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
-      <section className="card bg-brand-50/60 ring-brand-200">
-        <h3 className="mb-1 flex items-center gap-2 font-bold text-brand-800">
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-600 text-sm text-white">✓</span>
+      <section className="card bg-emerald-50/70 ring-emerald-200">
+        <h3 className="mb-1 flex items-center gap-2 font-bold text-emerald-800">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-sm text-white">✓</span>
           Contenants acceptés
         </h3>
-        <p className="mb-4 text-xs text-brand-800/80">Contenants de boisson de 100 ml à 2 L</p>
+        <p className="mb-4 text-xs text-emerald-800/80">Contenants de boisson de 100 ml à 2 L</p>
         <ul className="grid grid-cols-2 gap-x-3 gap-y-4 sm:grid-cols-2">
           {ACCEPTES.map(({ Icon, label, detail }) => (
             <li key={label} className="flex flex-col items-center text-center">
-              <Icon className="h-14 w-14 text-brand-700" />
+              <Icon className="h-14 w-14 text-emerald-700" />
               <p className="mt-1 text-xs font-semibold leading-tight text-gray-800">{label}</p>
               {detail && <p className="text-[11px] leading-tight text-gray-500">{detail}</p>}
             </li>
@@ -164,18 +164,18 @@ export function ContainerGuide() {
         </ul>
       </section>
 
-      <section className="card bg-gray-50 ring-gray-200">
-        <h3 className="mb-1 flex items-center gap-2 font-bold text-gray-700">
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-400 text-sm text-white">✕</span>
+      <section className="card bg-red-50/70 ring-red-200">
+        <h3 className="mb-1 flex items-center gap-2 font-bold text-red-800">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red-600 text-sm text-white">✕</span>
           Non consignés
         </h3>
-        <p className="mb-4 text-xs text-gray-500">Ils vont au bac de recyclage</p>
+        <p className="mb-4 text-xs text-red-800/80">Ils vont au bac de recyclage</p>
         <ul className="grid grid-cols-2 gap-x-3 gap-y-4">
           {REFUSES.map(({ Icon, label, detail }) => (
             <li key={label} className="flex flex-col items-center text-center">
-              <Icon className="h-14 w-14 text-gray-400" />
-              <p className="mt-1 text-xs font-semibold leading-tight text-gray-600">{label}</p>
-              {detail && <p className="text-[11px] leading-tight text-gray-400">{detail}</p>}
+              <Icon className="h-14 w-14 text-red-600/80" />
+              <p className="mt-1 text-xs font-semibold leading-tight text-gray-700">{label}</p>
+              {detail && <p className="text-[11px] leading-tight text-gray-500">{detail}</p>}
             </li>
           ))}
         </ul>

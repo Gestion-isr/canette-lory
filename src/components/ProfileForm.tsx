@@ -19,12 +19,6 @@ export function ProfileForm({ profile }: { profile: Profile }) {
           <input id="full_name" name="full_name" defaultValue={profile.full_name ?? ""} className="input" placeholder="Prénom Nom" />
         </div>
         <div>
-          <label className="label" htmlFor="phone">
-            Téléphone <span className="font-normal text-gray-400">(optionnel)</span>
-          </label>
-          <input id="phone" name="phone" defaultValue={profile.phone ?? ""} className="input" placeholder="819 555-1234" inputMode="tel" />
-        </div>
-        <div>
           <label className="label" htmlFor="pickup_note">
             Note pour la collecte <span className="font-normal text-gray-400">(optionnel)</span>
           </label>

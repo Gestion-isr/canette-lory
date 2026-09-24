@@ -108,9 +108,12 @@ export default async function FonctionnementPage() {
       <section className="card bg-sun-400/15 ring-sun-500/40">
         <h2 className="mb-1 text-lg font-bold">💛 Les dons sont acceptés</h2>
         <p className="text-gray-700">
-          Que ce soit 25 ¢ ou 1 $, chaque dollar fait une différence ! Vous pouvez glisser votre don dans le sac de cannettes le jour de la
-          collecte.
+          Que ce soit 25 ¢ ou 1 $, chaque dollar fait une différence ! Deux façons de faire :
         </p>
+        <ul className="mt-2 space-y-1 text-gray-700">
+          <li>• <strong>En main propre</strong>, si vous êtes là au moment de la collecte.</li>
+          <li>• <strong>Dans un sac Ziploc</strong> glissé à l&apos;intérieur du sac de cannettes.</li>
+        </ul>
       </section>
 
       <p className="text-center text-sm text-gray-500">
