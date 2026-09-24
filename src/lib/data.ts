@@ -1,24 +1,29 @@
 import { addDays } from "date-fns";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { computeAvailability, toISODate, type DayAvailability } from "@/lib/availability";
 import { allocateFunds } from "@/lib/goals";
 import type { Funds, Goal, GoalProgress, Settings } from "@/lib/types";
 
+/**
+ * Les paramètres contiennent l'adresse de la maison : la table n'est donc lisible
+ * que par les admins (RLS). On la lit ici côté serveur avec la clé service, et les
+ * pages publiques n'en affichent que le prénom, la saison et les jours de collecte.
+ */
 export async function getSettings(): Promise<Settings> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { data, error } = await supabase.from("settings").select("*").eq("id", 1).single();
   if (error || !data) throw new Error("Paramètres introuvables. As-tu exécuté la migration SQL ?");
   return data as Settings;
 }
 
 export async function getBlockedDates(): Promise<{ date: string; reason: string | null }[]> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { data } = await supabase.from("blocked_dates").select("*").order("date");
   return data ?? [];
 }
 
 export async function getAvailability(settings?: Settings): Promise<DayAvailability[]> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const s = settings ?? (await getSettings());
   const today = new Date();
   const from = toISODate(today);

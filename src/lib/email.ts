@@ -10,6 +10,15 @@ function client() {
 const FROM = process.env.EMAIL_FROM ?? "Collecte de cannettes <onboarding@resend.dev>";
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
+/** Échappe le texte inséré dans le HTML des courriels (les noms viennent des citoyens). */
+function esc(v: string | null | undefined): string {
+  return (v ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 function layout(title: string, body: string) {
   return `
   <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#1f2937">
@@ -46,8 +55,8 @@ export async function sendRequestConfirmation(opts: {
     `Collecte confirmée pour le ${d}`,
     layout(
       "Demande de collecte reçue !",
-      `<p>Bonjour ${opts.name ?? ""},</p>
-       <p>${opts.childName} passera chercher vos cannettes le <strong>${d}</strong>.</p>
+      `<p>Bonjour ${esc(opts.name)},</p>
+       <p>${esc(opts.childName)} passera chercher vos cannettes le <strong>${d}</strong>.</p>
        <p>Merci de laisser vos sacs bien visibles près de l'entrée. Vous pouvez annuler ou modifier votre demande à tout moment depuis votre compte.</p>
        <p>Merci de votre soutien 💚</p>`,
     ),
@@ -67,8 +76,8 @@ export async function sendCompletionThanks(opts: {
     `Merci ! Collecte du ${d} complétée`,
     layout(
       "Collecte complétée 🎉",
-      `<p>Bonjour ${opts.name ?? ""},</p>
-       <p>${opts.childName} est passée le <strong>${d}</strong>${opts.cans ? ` et a ramassé environ <strong>${opts.cans} cannettes</strong>` : ""}.</p>
+      `<p>Bonjour ${esc(opts.name)},</p>
+       <p>${esc(opts.childName)} est passée le <strong>${d}</strong>${opts.cans ? ` et a ramassé environ <strong>${opts.cans} cannettes</strong>` : ""}.</p>
        <p>Un immense merci pour votre contribution !</p>`,
     ),
   );
@@ -81,8 +90,8 @@ export async function sendReminder(opts: { to: string; name: string | null; date
     `Rappel : collecte de cannettes demain (${d})`,
     layout(
       "Petit rappel 🥫",
-      `<p>Bonjour ${opts.name ?? ""},</p>
-       <p>${opts.childName} passera chercher vos cannettes <strong>demain, ${d}</strong>.</p>
+      `<p>Bonjour ${esc(opts.name)},</p>
+       <p>${esc(opts.childName)} passera chercher vos cannettes <strong>demain, ${d}</strong>.</p>
        <p>Pensez à laisser vos sacs bien visibles près de l'entrée. Merci !</p>`,
     ),
   );
