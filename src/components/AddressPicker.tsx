@@ -6,56 +6,53 @@ import { Map } from "@/components/Map";
 type Suggestion = { label: string; lat: number; lng: number };
 
 export type AddressValue = { address: string; lat: number | null; lng: number | null };
+export type AddressNames = { address: string; lat: string; lng: string };
+
+const DEFAULT_NAMES: AddressNames = { address: "address", lat: "lat", lng: "lng" };
 
 /**
- * Champ d'adresse avec autocomplétion (Nominatim) et carte : on tape l'adresse,
- * on choisit une suggestion, puis on peut ajuster le point exact sur la carte.
- * Les valeurs sont transmises au formulaire via des champs cachés.
+ * État partagé entre le champ d'adresse et la carte.
+ * Permet de placer les deux à des endroits différents du formulaire.
  */
-export function AddressPicker({
-  defaultValue,
-  names = { address: "address", lat: "lat", lng: "lng" },
+export function useAddress(defaultValue: AddressValue) {
+  const [value, setValue] = useState<AddressValue>(defaultValue);
+  return { value, setValue };
+}
+
+export type AddressState = ReturnType<typeof useAddress>;
+
+/** Champ texte avec autocomplétion (Nominatim) + champs cachés lat/lng. */
+export function AddressInput({
+  state,
+  names = DEFAULT_NAMES,
   label = "Adresse",
   hint,
-  mapHeight = "h-64",
   required = false,
-  onChange,
 }: {
-  defaultValue: AddressValue;
-  names?: { address: string; lat: string; lng: string };
+  state: AddressState;
+  names?: AddressNames;
   label?: string;
   hint?: string;
-  mapHeight?: string;
   required?: boolean;
-  onChange?: (v: AddressValue) => void;
 }) {
-  const [address, setAddress] = useState(defaultValue.address);
-  const [lat, setLat] = useState<number | null>(defaultValue.lat);
-  const [lng, setLng] = useState<number | null>(defaultValue.lng);
+  const { value, setValue } = state;
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [open, setOpen] = useState(false);
   const [searching, setSearching] = useState(false);
   const [touched, setTouched] = useState(false);
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const set = (v: AddressValue) => {
-    setAddress(v.address);
-    setLat(v.lat);
-    setLng(v.lng);
-    onChange?.(v);
-  };
-
   useEffect(() => {
     if (!touched) return;
     if (debounce.current) clearTimeout(debounce.current);
-    if (address.trim().length < 5) {
+    if (value.address.trim().length < 5) {
       setSuggestions([]);
       return;
     }
     setSearching(true);
     debounce.current = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/geocode?q=${encodeURIComponent(address)}`);
+        const res = await fetch(`/api/geocode?q=${encodeURIComponent(value.address)}`);
         const data = (await res.json()) as { results?: Suggestion[] };
         setSuggestions(data.results ?? []);
         setOpen(true);
@@ -68,76 +65,113 @@ export function AddressPicker({
     return () => {
       if (debounce.current) clearTimeout(debounce.current);
     };
-  }, [address, touched]);
+  }, [value.address, touched]);
 
-  const located = lat != null && lng != null;
+  const located = value.lat != null && value.lng != null;
 
   return (
-    <div className="space-y-3">
-      <div className="relative">
-        <label className="label" htmlFor={names.address}>
-          {label}
-        </label>
-        <input
-          id={names.address}
-          name={names.address}
-          value={address}
-          onChange={(e) => {
-            setTouched(true);
-            set({ address: e.target.value, lat: null, lng: null });
-          }}
-          onFocus={() => suggestions.length > 0 && setOpen(true)}
-          onBlur={() => setTimeout(() => setOpen(false), 150)}
-          className="input"
-          placeholder="123 rue Saint-Pierre"
-          autoComplete="off"
-          required={required}
-        />
-        {open && suggestions.length > 0 && (
-          <ul className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-xl bg-white py-1 text-sm shadow-lg ring-1 ring-black/10">
-            {suggestions.map((s) => (
-              <li key={`${s.lat},${s.lng}`}>
-                <button
-                  type="button"
-                  onMouseDown={() => {
-                    set({ address: shortLabel(s.label), lat: s.lat, lng: s.lng });
-                    setOpen(false);
-                  }}
-                  className="block w-full px-3 py-2 text-left hover:bg-brand-50"
-                >
-                  {s.label}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-        <p className="mt-1 text-xs text-gray-500">
-          {searching
-            ? "Recherche de l'adresse…"
-            : located
-              ? "✅ Adresse localisée. Ajustez le point sur la carte au besoin."
-              : (hint ?? "Tapez le numéro et la rue, puis choisissez dans la liste.")}
-        </p>
-      </div>
-
-      <input type="hidden" name={names.lat} value={lat ?? ""} />
-      <input type="hidden" name={names.lng} value={lng ?? ""} />
-
-      {located ? (
-        <Map
-          center={[lat, lng]}
-          zoom={16}
-          markers={[{ id: "pin", lat, lng, draggable: true, onDragEnd: (la, ln) => set({ address, lat: la, lng: ln }) }]}
-          onClick={(la, ln) => set({ address, lat: la, lng: ln })}
-          className={`${mapHeight} w-full`}
-        />
-      ) : (
-        <div className={`flex ${mapHeight} items-center justify-center rounded-2xl bg-gray-50 text-center text-sm text-gray-500 ring-1 ring-black/5`}>
-          Choisissez une adresse dans la liste
-          <br />
-          pour la voir sur la carte.
-        </div>
+    <div className="relative">
+      <label className="label" htmlFor={names.address}>
+        {label}
+      </label>
+      <input
+        id={names.address}
+        name={names.address}
+        value={value.address}
+        onChange={(e) => {
+          setTouched(true);
+          setValue({ address: e.target.value, lat: null, lng: null });
+        }}
+        onFocus={() => suggestions.length > 0 && setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        className="input"
+        placeholder="123 rue Saint-Pierre"
+        autoComplete="off"
+        required={required}
+      />
+      {open && suggestions.length > 0 && (
+        <ul className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-xl bg-white py-1 text-sm shadow-lg ring-1 ring-black/10">
+          {suggestions.map((s) => (
+            <li key={`${s.lat},${s.lng}`}>
+              <button
+                type="button"
+                onMouseDown={() => {
+                  setValue({ address: shortLabel(s.label), lat: s.lat, lng: s.lng });
+                  setOpen(false);
+                }}
+                className="block w-full px-3 py-2 text-left hover:bg-brand-50"
+              >
+                {s.label}
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
+      <p className="mt-1 text-xs text-gray-500">
+        {searching
+          ? "Recherche de l'adresse…"
+          : located
+            ? "✅ Adresse localisée. Ajustez le point sur la carte au besoin."
+            : (hint ?? "Tapez le numéro et la rue, puis choisissez dans la liste.")}
+      </p>
+      <input type="hidden" name={names.lat} value={value.lat ?? ""} />
+      <input type="hidden" name={names.lng} value={value.lng ?? ""} />
+    </div>
+  );
+}
+
+/** Carte affichant le point choisi, déplaçable pour ajuster l'emplacement exact. */
+export function AddressMap({ state, className = "h-64" }: { state: AddressState; className?: string }) {
+  const { value, setValue } = state;
+  if (value.lat == null || value.lng == null) {
+    return (
+      <div className={`flex ${className} items-center justify-center rounded-2xl bg-gray-50 text-center text-sm text-gray-500 ring-1 ring-black/5`}>
+        Choisissez une adresse dans la liste
+        <br />
+        pour la voir sur la carte.
+      </div>
+    );
+  }
+  return (
+    <Map
+      center={[value.lat, value.lng]}
+      zoom={16}
+      markers={[
+        {
+          id: "pin",
+          lat: value.lat,
+          lng: value.lng,
+          draggable: true,
+          onDragEnd: (lat, lng) => setValue({ ...value, lat, lng }),
+        },
+      ]}
+      onClick={(lat, lng) => setValue({ ...value, lat, lng })}
+      className={`${className} w-full`}
+    />
+  );
+}
+
+/** Champ + carte l'un sous l'autre (utilisé dans les Paramètres). */
+export function AddressPicker({
+  defaultValue,
+  names = DEFAULT_NAMES,
+  label = "Adresse",
+  hint,
+  mapHeight = "h-64",
+  required = false,
+}: {
+  defaultValue: AddressValue;
+  names?: AddressNames;
+  label?: string;
+  hint?: string;
+  mapHeight?: string;
+  required?: boolean;
+}) {
+  const state = useAddress(defaultValue);
+  return (
+    <div className="space-y-3">
+      <AddressInput state={state} names={names} label={label} hint={hint} required={required} />
+      <AddressMap state={state} className={mapHeight} />
     </div>
   );
 }

@@ -4,13 +4,15 @@ import { useActionState } from "react";
 import { updateProfile } from "@/actions/profile";
 import type { ActionState } from "@/actions/pickups";
 import type { Profile } from "@/lib/types";
-import { AddressPicker } from "@/components/AddressPicker";
+import { AddressInput, AddressMap, useAddress } from "@/components/AddressPicker";
 
 export function ProfileForm({ profile }: { profile: Profile }) {
   const [state, action, pending] = useActionState<ActionState, FormData>(updateProfile, {});
+  const address = useAddress({ address: profile.address ?? "", lat: profile.lat, lng: profile.lng });
 
   return (
     <form action={action} className="grid gap-5 md:grid-cols-2">
+      {/* Qui et où */}
       <div className="space-y-3">
         <div>
           <label className="label" htmlFor="full_name">
@@ -18,6 +20,23 @@ export function ProfileForm({ profile }: { profile: Profile }) {
           </label>
           <input id="full_name" name="full_name" defaultValue={profile.full_name ?? ""} className="input" placeholder="Prénom Nom" />
         </div>
+
+        <AddressInput
+          state={address}
+          label="Adresse de la maison"
+          hint="Saint-Charles-de-Drummond. Tapez le numéro et la rue, puis choisissez dans la liste."
+          required
+        />
+
+        {state.error && <p className="alert-error">{state.error}</p>}
+        {state.ok && <p className="alert-success">{state.message}</p>}
+        <button type="submit" disabled={pending} className="btn-primary w-full">
+          {pending ? "Enregistrement…" : "Enregistrer mon profil"}
+        </button>
+      </div>
+
+      {/* Où déposer les sacs */}
+      <div className="space-y-3">
         <div>
           <label className="label" htmlFor="pickup_note">
             Note pour la collecte <span className="font-normal text-gray-400">(optionnel)</span>
@@ -36,19 +55,8 @@ export function ProfileForm({ profile }: { profile: Profile }) {
           </p>
         </div>
 
-        {state.error && <p className="alert-error">{state.error}</p>}
-        {state.ok && <p className="alert-success">{state.message}</p>}
-        <button type="submit" disabled={pending} className="btn-primary w-full">
-          {pending ? "Enregistrement…" : "Enregistrer mon profil"}
-        </button>
+        <AddressMap state={address} className="h-56" />
       </div>
-
-      <AddressPicker
-        defaultValue={{ address: profile.address ?? "", lat: profile.lat, lng: profile.lng }}
-        label="Adresse de la maison"
-        hint="Saint-Charles-de-Drummond. Tapez le numéro et la rue, puis choisissez dans la liste."
-        required
-      />
     </form>
   );
 }
