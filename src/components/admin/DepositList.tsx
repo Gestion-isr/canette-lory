@@ -3,7 +3,7 @@
 import { useTransition } from "react";
 import { deleteDeposit } from "@/actions/admin";
 import { formatDateShort, formatMoney } from "@/lib/format";
-import type { Deposit } from "@/lib/types";
+import { DEPOSIT_KINDS, type Deposit } from "@/lib/types";
 
 export function DepositList({ deposits }: { deposits: Deposit[] }) {
   const [pending, start] = useTransition();
@@ -13,11 +13,15 @@ export function DepositList({ deposits }: { deposits: Deposit[] }) {
       {deposits.map((d) => (
         <li key={d.id} className="flex items-center justify-between gap-3 py-2 text-sm">
           <div>
-            <span className={`font-semibold ${d.kind === "don" ? "text-amber-600" : "text-brand-700"}`}>{formatMoney(Number(d.amount))}</span>
-            {d.kind === "don" ? (
-              <span className="badge ml-2 bg-sun-400/25 text-amber-800">💛 don</span>
-            ) : (
+            <span className="font-semibold" style={{ color: DEPOSIT_KINDS.find((k) => k.key === d.kind)?.couleur ?? "#db2777" }}>
+              {formatMoney(Number(d.amount))}
+            </span>
+            {d.kind === "cannettes" ? (
               d.cans_count != null && <span className="text-gray-500"> · {d.cans_count} cannettes</span>
+            ) : (
+              <span className="badge ml-2 bg-gray-100 text-gray-700">
+                {DEPOSIT_KINDS.find((k) => k.key === d.kind)?.icone} {DEPOSIT_KINDS.find((k) => k.key === d.kind)?.court}
+              </span>
             )}
             <span className="block text-xs capitalize text-gray-400">
               {formatDateShort(d.deposited_at)}

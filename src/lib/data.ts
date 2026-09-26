@@ -51,6 +51,7 @@ export async function getFunds(): Promise<Funds> {
   return {
     total_amount,
     total_donations: Number(row.total_donations ?? 0),
+    total_personal: Number(row.total_personal ?? 0),
     total_cans: Number(row.total_cans ?? 0),
     spent_amount,
     available: Math.max(0, total_amount - spent_amount),

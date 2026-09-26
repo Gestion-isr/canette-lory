@@ -5,7 +5,6 @@ import { getGoals, getSettings } from "@/lib/data";
 import { toISODate } from "@/lib/availability";
 import { formatDateShort, formatMoney, formatNumber } from "@/lib/format";
 import { DepositForm } from "@/components/admin/DepositForm";
-import { DonationForm } from "@/components/admin/DonationForm";
 import { DepositList } from "@/components/admin/DepositList";
 import { GoalManager } from "@/components/admin/GoalManager";
 import type { Deposit, PickupWithProfile } from "@/lib/types";
@@ -36,12 +35,14 @@ export default async function AdminDashboard() {
 
   const totalAmount = funds.total_amount;
   const totalDonations = funds.total_donations;
+  const totalPersonal = funds.total_personal;
   const totalCans = funds.total_cans;
 
   const tiles = [
     { label: "Argent récolté (total)", value: formatMoney(totalAmount), icon: "💰" },
-    { label: "Consignes", value: formatMoney(totalAmount - totalDonations), icon: "🥫", sub: `${formatNumber(totalCans)} cannettes` },
+    { label: "Consignes", value: formatMoney(totalAmount - totalDonations - totalPersonal), icon: "🥫", sub: `${formatNumber(totalCans)} cannettes` },
     { label: "Dons", value: formatMoney(totalDonations), icon: "💛" },
+    { label: "Argent personnel", value: formatMoney(totalPersonal), icon: "🐷" },
     { label: "Collectes en attente", value: formatNumber(pendingCount ?? 0), icon: "📋" },
     { label: "Collectes complétées", value: formatNumber(doneCount ?? 0), icon: "✅" },
     { label: "Citoyens inscrits", value: formatNumber(citizens ?? 0), icon: "🏘️" },
@@ -77,18 +78,10 @@ export default async function AdminDashboard() {
           <GoalManager goals={goals} funds={funds} surplus={surplus} />
         </section>
 
-        <div className="space-y-5">
-          <section className="card">
-            <h2 className="mb-3 text-lg font-bold">💰 Ajouter un dépôt de consignes</h2>
-            <p className="mb-3 text-sm text-gray-500">Après un passage au dépanneur / centre de retour, entre le montant reçu.</p>
-            <DepositForm today={today} />
-          </section>
-          <section className="card">
-            <h2 className="mb-3 text-lg font-bold">💛 Ajouter un don</h2>
-            <p className="mb-3 text-sm text-gray-500">Argent reçu en don lors d'une collecte. Compte dans l'objectif, affiché séparément.</p>
-            <DonationForm today={today} />
-          </section>
-        </div>
+        <section className="card">
+          <h2 className="mb-3 text-lg font-bold">💰 Ajouter de l'argent à la cagnotte</h2>
+          <DepositForm today={today} />
+        </section>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">

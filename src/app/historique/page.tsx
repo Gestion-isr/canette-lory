@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/server";
 import { toISODate } from "@/lib/availability";
+import { getFunds } from "@/lib/data";
+import { FundsDonut } from "@/components/FundsDonut";
 
 import { formatDateLong, formatMoney, formatNumber } from "@/lib/format";
 
@@ -15,7 +17,8 @@ type Journee = { date: string; arrets: number; cans: number; cansDepot: number; 
 export default async function HistoriquePage() {
   // Lecture avec la clé service : seules des données agrégées (sans nom ni adresse) sont affichées.
   const admin = createAdminClient();
-  const [{ data: deposits }, { data: pickups }, { data: pastGoals }, { count: citizens }] = await Promise.all([
+  const [funds, { data: deposits }, { data: pickups }, { data: pastGoals }, { count: citizens }] = await Promise.all([
+    getFunds(),
     admin.from("deposits").select("amount, cans_count, kind, deposited_at"),
     admin
       .from("pickup_requests")
@@ -31,9 +34,9 @@ export default async function HistoriquePage() {
     admin.from("profiles").select("*", { count: "exact", head: true }).eq("is_admin", false),
   ]);
 
-  const totalAmount = (deposits ?? []).reduce((s, d) => s + Number(d.amount), 0);
-  const totalDonations = (deposits ?? []).filter((d) => d.kind === "don").reduce((s, d) => s + Number(d.amount), 0);
-  const consignes = totalAmount - totalDonations;
+  const totalDonations = funds.total_donations;
+  const totalPersonal = funds.total_personal;
+  const consignes = funds.total_amount - totalDonations - totalPersonal;
   const cansDeposes = (deposits ?? []).reduce((s, d) => s + (d.cans_count ?? 0), 0);
 
   // Valeur moyenne réellement obtenue par cannette (0,10 $ tant qu'aucun dépôt n'est enregistré)
@@ -54,7 +57,7 @@ export default async function HistoriquePage() {
   // Les journées où des cannettes ont été rapportées comptent aussi dans l'historique,
   // même si elles ne venaient pas d'un citoyen (ex. les cannettes de la maison).
   for (const d of deposits ?? []) {
-    if (d.kind === "don") continue;
+    if (d.kind !== "cannettes") continue;
     const j = jour(d.deposited_at);
     j.cansDepot += d.cans_count ?? 0;
     j.montantDepot += Number(d.amount);
@@ -67,6 +70,7 @@ export default async function HistoriquePage() {
     { icon: "🥫", value: formatNumber(Math.max(cansDeposes, cansCollectes)), label: "cannettes ramassées" },
     { icon: "💰", value: formatMoney(consignes), label: "en consignes" },
     { icon: "💛", value: formatMoney(totalDonations), label: "en dons" },
+    { icon: "🐷", value: formatMoney(totalPersonal), label: "argent personnel" },
     { icon: "✅", value: formatNumber((pickups ?? []).filter((p) => p.status === "completee").length), label: "collectes complétées" },
     { icon: "🏘️", value: formatNumber(citizens ?? 0), label: "foyers participants" },
   ];
@@ -79,7 +83,7 @@ export default async function HistoriquePage() {
         <p className="mt-2 text-gray-600">Merci à tous ceux qui participent — voici ce que chaque journée de collecte a donné.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {tiles.map((t) => (
           <div key={t.label} className="card !p-4 text-center">
             <p className="text-2xl">{t.icon}</p>
@@ -88,6 +92,13 @@ export default async function HistoriquePage() {
           </div>
         ))}
       </div>
+
+      {funds.total_amount > 0 && (
+        <section className="card">
+          <h2 className="mb-3 text-lg font-bold">D&apos;où vient l&apos;argent</h2>
+          <FundsDonut funds={funds} />
+        </section>
+      )}
 
       <section className="card">
         <h2 className="mb-1 text-lg font-bold">📅 Chaque collecte</h2>

@@ -10,6 +10,7 @@ type NavLink = { href: string; label: string; short?: string };
 
 const publicLinks: NavLink[] = [
   { href: "/fonctionnement", label: "Fonctionnement" },
+  { href: "/blog", label: "Blog" },
   { href: "/a-propos", label: "À propos" },
   { href: "/historique", label: "Historique" },
 ];
@@ -18,6 +19,7 @@ const adminLinks: NavLink[] = [
   { href: "/admin", label: "Tableau de bord", short: "Tableau" },
   { href: "/admin/collectes", label: "Collectes" },
   { href: "/admin/carte", label: "Carte & trajet", short: "Carte" },
+  { href: "/admin/blog", label: "Blog (admin)", short: "Blog+" },
   { href: "/admin/citoyens", label: "Citoyens" },
   { href: "/admin/parametres", label: "Paramètres" },
 ];

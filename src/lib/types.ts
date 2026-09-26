@@ -72,13 +72,20 @@ export type GoalProgress = Goal & { raised_amount: number };
 export type Funds = {
   total_amount: number;
   total_donations: number;
+  total_personal: number;
   total_cans: number;
   spent_amount: number;
   /** Cagnotte disponible pour les objectifs actifs = total - dépensé */
   available: number;
 };
 
-export type DepositKind = "cannettes" | "don";
+export type DepositKind = "cannettes" | "don" | "personnel";
+
+export const DEPOSIT_KINDS: { key: DepositKind; label: string; court: string; icone: string; couleur: string }[] = [
+  { key: "cannettes", label: "Consignes de cannettes", court: "Cannettes", icone: "🥫", couleur: "#db2777" },
+  { key: "don", label: "Don reçu", court: "Dons", icone: "💛", couleur: "#f59e0b" },
+  { key: "personnel", label: "Argent personnel", court: "Argent personnel", icone: "🐷", couleur: "#6366f1" },
+];
 
 export type Deposit = {
   id: string;
@@ -87,6 +94,16 @@ export type Deposit = {
   cans_count: number | null;
   deposited_at: string;
   note: string | null;
+};
+
+export type Post = {
+  id: string;
+  title: string;
+  body: string;
+  images: string[];
+  published: boolean;
+  published_at: string;
+  created_at: string;
 };
 
 export const STATUS_LABELS: Record<PickupStatus, string> = {

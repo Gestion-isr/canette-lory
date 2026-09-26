@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef, useState, useTransition } from "reac
 import { addGoal, deleteGoal, markGoalAchieved, moveGoal, updateGoalImage } from "@/actions/admin";
 import { ImagePicker } from "@/components/admin/ImagePicker";
 import { GoalProgressBar } from "@/components/GoalProgressBar";
+import { FundsDonut, fundsMix } from "@/components/FundsDonut";
 import { formatMoney } from "@/lib/format";
 import type { ActionState } from "@/actions/pickups";
 import type { Funds, GoalProgress } from "@/lib/types";
@@ -12,6 +13,8 @@ export function GoalManager({ goals, funds, surplus }: { goals: GoalProgress[]; 
   const [state, action, pending] = useActionState<ActionState, FormData>(addGoal, {});
   const [open, setOpen] = useState(goals.length === 0);
   const [busy, start] = useTransition();
+  const mix = fundsMix(funds);
+  const parts = mix.total > 0 ? mix.parts : undefined;
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
@@ -36,7 +39,7 @@ export function GoalManager({ goals, funds, surplus }: { goals: GoalProgress[]; 
       <ul className="space-y-4">
         {goals.map((g, i) => (
           <li key={g.id} className="rounded-xl bg-gray-50 p-3 ring-1 ring-black/5">
-            <GoalProgressBar goal={g} compact rank={goals.length > 1 ? i + 1 : undefined} />
+            <GoalProgressBar goal={g} compact rank={goals.length > 1 ? i + 1 : undefined} parts={parts} />
             <GoalActions goal={g} index={i} count={goals.length} busy={busy} start={start} />
           </li>
         ))}
@@ -46,6 +49,13 @@ export function GoalManager({ goals, funds, surplus }: { goals: GoalProgress[]; 
         <p className="rounded-xl bg-brand-50 px-3 py-2 text-xs text-brand-800 ring-1 ring-brand-200">
           🎉 Tous les objectifs sont financés, il reste {formatMoney(surplus)} en surplus. Ajoute un nouvel objectif !
         </p>
+      )}
+
+      {mix.total > 0 && (
+        <div className="rounded-xl bg-gray-50 p-3 ring-1 ring-black/5">
+          <h3 className="mb-2 text-sm font-bold text-gray-900">D&apos;où vient l&apos;argent</h3>
+          <FundsDonut funds={funds} size={112} />
+        </div>
       )}
 
       {!open ? (

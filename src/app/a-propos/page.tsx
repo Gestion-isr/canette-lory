@@ -7,7 +7,7 @@ import { defaultAboutText } from "@/lib/about";
 export const dynamic = "force-dynamic";
 
 export default async function AProposPage() {
-  const [settings, { goals }] = await Promise.all([getSettings(), getGoals()]);
+  const [settings, { goals, funds }] = await Promise.all([getSettings(), getGoals()]);
   const text = settings.about_text?.trim() || defaultAboutText(settings.child_name);
 
   return (
@@ -24,7 +24,7 @@ export default async function AProposPage() {
       {goals.length > 0 && settings.show_goal_to_citizens && (
         <div className="space-y-3">
           <h2 className="text-lg font-bold">🎯 Mes objectifs</h2>
-          <GoalList goals={goals} />
+          <GoalList goals={goals} funds={funds} />
         </div>
       )}
 

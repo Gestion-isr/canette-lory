@@ -16,6 +16,7 @@ export default async function HomePage({
   const { suite, erreur } = await searchParams;
   const [settings, goalsData] = await Promise.all([getSettings().catch(() => null), getGoals().catch(() => null)]);
   const goals = goalsData?.goals ?? [];
+  const funds = goalsData?.funds;
   const childName = settings?.child_name ?? "Lory";
 
   return (
@@ -50,7 +51,7 @@ export default async function HomePage({
         </p>
         {goals.length > 0 && settings?.show_goal_to_citizens && (
           <div className="mt-6">
-            <GoalList goals={goals} />
+            <GoalList goals={goals} funds={funds} />
           </div>
         )}
       </div>
